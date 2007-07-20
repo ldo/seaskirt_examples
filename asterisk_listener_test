@@ -1,0 +1,32 @@
+#!/usr/bin/python
+#+
+# Trying to listen for Asterisk events.
+#
+# Start of development 2007 July 20 by Lawrence D'Oliveiro
+#     <ldo@geek-central.gen.nz>.
+#-
+
+import sys
+import select
+import Asterisk
+
+TheConn = Asterisk.Manager()
+sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
+TheConn.Authenticate("user", "secret", True)
+
+try :
+	while True :
+		(ReadReady, _, _) = \
+			select.select((TheConn,), (), (), 1.0)
+		if TheConn in ReadReady :
+			Response = TheConn.GetResponse()
+			sys.stdout.write(repr(Response) + "\n")
+		else :
+			pass # sys.stderr.write("No events yet\n") # debug
+		#end if
+	#end while
+except KeyboardInterrupt :
+	pass # exit loop
+#end try
+
+TheConn.close()
