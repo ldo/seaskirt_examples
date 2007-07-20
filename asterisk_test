@@ -1,0 +1,36 @@
+#!/usr/bin/python
+#+
+# Messing about with Asterisk Manager interface.
+#
+# Start of development 2007 March 2 by Lawrence D'Oliveiro
+#    <ldo@geek-central.gen.nz>.
+# Moved Manager class into separate module 2007 July 20.
+#-
+
+import sys
+import Asterisk
+
+TheConn = Asterisk.Manager()
+sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
+TheConn.Authenticate("user", "secret")
+Response = TheConn.Transact("Ping", {})
+sys.stdout.write(repr(Response) + "\n")
+Response = TheConn.Transact("ZapShowChannels", {}, "ZapShowChannelsComplete")
+sys.stdout.write(repr(Response) + "\n")
+Response = TheConn.Transact("ParkedCalls", {}, "ParkedCallsComplete")
+sys.stdout.write(repr(Response) + "\n")
+Response = TheConn.Transact \
+  (
+	Action = "Originate",
+	Parms =
+		{
+			"Channel" : "IAX2/Testing",
+			"Context" : "directout",
+			"Exten" : "8466324",
+			"Priority" : 1,
+			"Timeout" : 10000,
+		}
+  )
+sys.stdout.write(repr(Response) + "\n")
+TheConn.Transact("Logoff", {})
+TheConn.close()
