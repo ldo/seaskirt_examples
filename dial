@@ -3,6 +3,7 @@
 # Simple script using my Asterisk Manager library to place a call.
 #
 # Created 2007 July 20 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+# Add timeout option 2008 July 31.
 #-
 
 import sys
@@ -13,7 +14,7 @@ import Asterisk
   (
 	sys.argv[1:],
 	"",
-	["channel=", "context="]
+	["channel=", "context=", "timeout="]
   )
 if len(Args) != 1 :
 	raise getopt.GetoptError("expecting one arg, the extension to dial")
@@ -21,11 +22,14 @@ if len(Args) != 1 :
 Extension = Args[0]
 Channel = "IAX2/Testing" # default
 Context = "directout" # default
+Timeout = 10 # default
 for Keyword, Value in Opts :
 	if Keyword == "--channel" :
 		Channel = Value
 	elif Keyword == "--context" :
 		Context = Value
+	elif Keyword == "--timeout" :
+		Timeout = float(Value)
 	#end if
 #end for
 
@@ -42,7 +46,7 @@ Response = TheConn.Transact \
 			"Context" : Context,
 			"Exten" : Extension,
 			"Priority" : 1,
-			"Timeout" : 10000,
+			"Timeout" : int(Timeout * 1000),
 		}
   )
 sys.stdout.write(repr(Response) + "\n")
