@@ -1,0 +1,50 @@
+#!/usr/bin/python
+#+
+# Simple script using my Asterisk Manager library to perform arbitrary functions.
+#
+# Created 2008 August 14 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+#-
+
+import sys
+import getopt
+import Asterisk
+
+(Opts, Args) = getopt.getopt \
+  (
+	sys.argv[1:],
+	"",
+	["multi=", "user=", "password="]
+  )
+User = None
+Password = None
+MultiResponse = False
+for Keyword, Value in Opts :
+	if Keyword == "--multi" :
+		MultiResponse = Value
+	elif Keyword == "--password" :
+		Password = Value
+	elif Keyword == "--user" :
+		User = Value
+	#end if
+#end for
+if User == None or Password == None :
+	raise getopt.GetoptError("--user and --password are required")
+#end if
+if len(Args) == 0 :
+	raise getopt.GetoptError("need at least one arg, the action to perform")
+#end if
+Parms = {}
+Action = Args[0]
+for Arg in Args[1:] :
+	(Keyword, Value) = Arg.split("=", 1)
+	Parms[Keyword] = Value
+#end for
+
+TheConn = Asterisk.Manager()
+sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
+TheConn.Authenticate(User, Password)
+
+Response = TheConn.Transact(Action, Parms, MultiResponse)
+sys.stdout.write(repr(Response) + "\n")
+TheConn.Transact("Logoff", {})
+TheConn.close()
