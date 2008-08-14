@@ -4,6 +4,7 @@
 #
 # Created 2007 July 20 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
 # Add timeout option 2008 July 31.
+# Add --user and --password, no more default channel or context 2008 August 14.
 #-
 
 import sys
@@ -14,28 +15,40 @@ import Asterisk
   (
 	sys.argv[1:],
 	"",
-	["channel=", "context=", "timeout="]
+	["channel=", "context=", "timeout=", "user=", "password="]
   )
-if len(Args) != 1 :
-	raise getopt.GetoptError("expecting one arg, the extension to dial")
-#end if
-Extension = Args[0]
-Channel = "IAX2/Testing" # default
-Context = "directout" # default
+Channel = None
+Context = None
 Timeout = 10 # default
+User = None
+Password = None
 for Keyword, Value in Opts :
 	if Keyword == "--channel" :
 		Channel = Value
 	elif Keyword == "--context" :
 		Context = Value
+	elif Keyword == "--password" :
+		Password = Value
 	elif Keyword == "--timeout" :
 		Timeout = float(Value)
+	elif Keyword == "--user" :
+		User = Value
 	#end if
 #end for
+if len(Args) != 1 :
+	raise getopt.GetoptError("expecting one arg, the extension to dial")
+#end if
+if Context == None or Channel == None :
+	raise getopt.GetoptError("--channel and --context are required")
+#end if
+if User == None or Password == None :
+	raise getopt.GetoptError("--user and --password are required")
+#end if
+Extension = Args[0]
 
 TheConn = Asterisk.Manager()
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
-TheConn.Authenticate("user", "secret")
+TheConn.Authenticate(User, Password)
 
 Response = TheConn.Transact \
   (
@@ -46,7 +59,7 @@ Response = TheConn.Transact \
 			"Context" : Context,
 			"Exten" : Extension,
 			"Priority" : 1,
-			"Timeout" : int(Timeout * 1000),
+			"Timeout" : int(round(Timeout * 1000)),
 		}
   )
 sys.stdout.write(repr(Response) + "\n")
