@@ -4,6 +4,7 @@
 #
 # Created 2008 August 14 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
 # Remove --multi (now automatic) 2008 August 15.
+# Add --debug and variables 2008 August 15.
 #-
 
 import sys
@@ -35,10 +36,19 @@ if len(Args) == 0 :
 	raise getopt.GetoptError("need at least one arg, the action to perform")
 #end if
 Parms = {}
+Vars = None
 Action = Args[0]
 for Arg in Args[1:] :
 	(Keyword, Value) = Arg.split("=", 1)
-	Parms[Keyword] = Value
+	if Keyword.lower() == "variable" :
+		if Vars == None :
+			Vars = {}
+		#end if
+		(VarName, Value) = Value.split("=", 1)
+		Vars[VarName] = Value
+	else :
+		Parms[Keyword] = Value
+	#end if
 #end for
 
 TheConn = Asterisk.Manager()
@@ -48,7 +58,7 @@ if Debug :
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
 TheConn.Authenticate(User, Password)
 
-Response = TheConn.Transact(Action, Parms)
+Response = TheConn.Transact(Action, Parms, Vars)
 sys.stdout.write(repr(Response) + "\n")
 TheConn.Transact("Logoff", {})
 TheConn.close()
