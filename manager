@@ -3,6 +3,7 @@
 # Simple script using my Asterisk Manager library to perform arbitrary functions.
 #
 # Created 2008 August 14 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+# Remove --multi (now automatic) 2008 August 15.
 #-
 
 import sys
@@ -13,14 +14,14 @@ import Asterisk
   (
 	sys.argv[1:],
 	"",
-	["multi=", "user=", "password="]
+	["debug", "user=", "password="]
   )
 User = None
 Password = None
-MultiResponse = False
+Debug = False
 for Keyword, Value in Opts :
-	if Keyword == "--multi" :
-		MultiResponse = Value
+	if Keyword == "--debug" :
+		Debug = True
 	elif Keyword == "--password" :
 		Password = Value
 	elif Keyword == "--user" :
@@ -41,10 +42,13 @@ for Arg in Args[1:] :
 #end for
 
 TheConn = Asterisk.Manager()
+if Debug :
+	TheConn.Debug = True
+#end if
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
 TheConn.Authenticate(User, Password)
 
-Response = TheConn.Transact(Action, Parms, MultiResponse)
+Response = TheConn.Transact(Action, Parms)
 sys.stdout.write(repr(Response) + "\n")
 TheConn.Transact("Logoff", {})
 TheConn.close()
