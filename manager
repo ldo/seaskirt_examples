@@ -5,6 +5,7 @@
 # Created 2008 August 14 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
 # Remove --multi (now automatic) 2008 August 15.
 # Add --debug and variables 2008 August 15.
+# Add special QueueStatus handling 2008 August 22.
 #-
 
 import sys
@@ -58,7 +59,11 @@ if Debug :
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
 TheConn.Authenticate(User, Password)
 
-Response = TheConn.Transact(Action, Parms, Vars)
+if Action.lower() == "queuestatus" and len(Parms) == 0 and Vars == None :
+	Response = TheConn.GetQueueStatus()
+else :
+	Response = TheConn.Transact(Action, Parms, Vars)
+#end if
 sys.stdout.write(repr(Response) + "\n")
 TheConn.Transact("Logoff", {})
 TheConn.close()
