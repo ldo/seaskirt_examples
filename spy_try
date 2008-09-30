@@ -1,0 +1,99 @@
+#!/usr/bin/python
+#+
+# Test of using Asterisk ChanSpy application. Note this assumes that a context
+# named "call_monitor" has been defined in extensions.conf, something like this:
+#
+#    [call_monitor]
+#    exten => s,1,Playback(monitored)
+#    exten => s,n,ChanSpy(${VICTIM})
+#    exten => s,n,Hangup()
+#
+# Created 2008 September 30 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+#-
+
+import sys
+import time
+import getopt
+import Asterisk
+
+#+
+# Call setup parameters
+#-
+
+FromChannel = "Zap/1"
+ToContext = "loopback"
+ToExtension = "12345"
+SpyChannel = "IAX2/hypatia"
+SpyContext = "call_monitor"
+SpyExtension = "s"
+
+#+
+# Mainline
+#-
+
+(Opts, Args) = getopt.getopt \
+  (
+	sys.argv[1:],
+	"",
+	["debug", "password=", "user="]
+  )
+User = None
+Password = None
+Debug = False
+Timeout = 10 # default
+for Keyword, Value in Opts :
+	if Keyword == "--debug" :
+		Debug = True
+	elif Keyword == "--password" :
+		Password = Value
+	elif Keyword == "--user" :
+		User = Value
+	#end if
+#end for
+if User == None or Password == None :
+	raise getopt.GetoptError("--user and --password are required")
+#end if
+
+TheConn = Asterisk.Manager()
+if Debug :
+	TheConn.Debug = True
+#end if
+sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
+TheConn.Authenticate(User, Password)
+
+Response = TheConn.Transact \
+  (
+	Action = "Originate",
+	Parms =
+		{
+			"Channel" : FromChannel,
+			"Context" : ToContext,
+			"Exten" : ToExtension,
+			"Priority" : 1,
+			"Timeout" : int(round(Timeout * 1000)),
+		}
+  )
+sys.stdout.write(repr(Response) + "\n")
+
+time.sleep(5) # just for fun
+
+Response = TheConn.Transact \
+  (
+	Action = "Originate",
+	Parms =
+		{
+			"Channel" : SpyChannel,
+			"Context" : SpyContext,
+			"Exten" : SpyExtension,
+			"Priority" : 1,
+			"Timeout" : int(round(Timeout * 1000)),
+		},
+	Vars =
+		{
+			"VICTIM" : FromChannel,
+		},
+  )
+sys.stdout.write(repr(Response) + "\n")
+
+TheConn.Transact("Logoff", {})
+TheConn.close()
