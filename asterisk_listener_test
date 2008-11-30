@@ -1,12 +1,12 @@
 #!/usr/bin/python
 #+
-# Trying to listen for Asterisk events.
+# Simple listener for Asterisk events.
 #
-# Start of development 2007 July 20 by Lawrence D'Oliveiro
-#     <ldo@geek-central.gen.nz>.
+# Created by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
 #-
 
 import sys
+import time
 import select
 import Asterisk
 
@@ -20,7 +20,18 @@ try :
 			select.select((TheConn,), (), (), 1.0)
 		if TheConn in ReadReady :
 			Response = TheConn.GetResponse()
-			sys.stdout.write(repr(Response) + "\n")
+			sys.stdout.write \
+			  (
+					"%s: Event: \"%s\", contents %s\n"
+				%
+					(
+							"%04d-%02d-%02d %02d:%02d:%02dZ"
+						%
+							time.gmtime()[:6],
+						Response["Event"],
+						repr(Response),
+					)
+			  )
 		else :
 			pass # sys.stderr.write("No events yet\n") # debug
 		#end if
