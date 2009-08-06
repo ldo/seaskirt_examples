@@ -22,14 +22,17 @@ try :
 			Response = TheConn.GetResponse()
 			sys.stdout.write \
 			  (
-					"%s: Event: \"%s\", contents %s\n"
+					"%s: Event: \"%s\", contents {%s}\n"
 				%
 					(
 							"%04d-%02d-%02d %02d:%02d:%02dZ"
 						%
 							time.gmtime()[:6],
 						Response["Event"],
-						repr(Response),
+						", ".join
+						  (
+							"%s : %s" % (repr(key), repr(Response[key])) for key in sorted(Response.keys())
+						  )
 					)
 			  )
 		else :
