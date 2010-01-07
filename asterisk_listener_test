@@ -8,7 +8,14 @@
 import sys
 import time
 import select
+import signal
 import Asterisk
+
+def Interrupted(signum, frame) :
+	raise KeyboardInterrupt("somebody killed me")
+#end Interrupted
+
+signal.signal(signal.SIGTERM, Interrupted)
 
 TheConn = Asterisk.Manager()
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
