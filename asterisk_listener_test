@@ -12,7 +12,7 @@ import signal
 import Asterisk
 
 def Interrupted(signum, frame) :
-	raise KeyboardInterrupt("somebody killed me")
+    raise KeyboardInterrupt("somebody killed me")
 #end Interrupted
 
 signal.signal(signal.SIGTERM, Interrupted)
@@ -22,32 +22,32 @@ sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
 TheConn.Authenticate("user", "secret", True)
 
 try :
-	while True :
-		(ReadReady, _, _) = \
-			select.select((TheConn,), (), (), 1.0)
-		if TheConn in ReadReady :
-			Response = TheConn.GetResponse()
-			sys.stdout.write \
-			  (
-					"%s: Event: \"%s\", contents {%s}\n"
-				%
-					(
-							"%04d-%02d-%02d %02d:%02d:%02dZ"
-						%
-							time.gmtime()[:6],
-						Response["Event"],
-						", ".join
-						  (
-							"%s : %s" % (repr(key), repr(Response[key])) for key in sorted(Response.keys())
-						  )
-					)
-			  )
-		else :
-			pass # sys.stderr.write("No events yet\n") # debug
-		#end if
-	#end while
+    while True :
+        (ReadReady, _, _) = \
+            select.select((TheConn,), (), (), 1.0)
+        if TheConn in ReadReady :
+            Response = TheConn.GetResponse()
+            sys.stdout.write \
+              (
+                    "%s: Event: \"%s\", contents {%s}\n"
+                %
+                    (
+                            "%04d-%02d-%02d %02d:%02d:%02dZ"
+                        %
+                            time.gmtime()[:6],
+                        Response["Event"],
+                        ", ".join
+                          (
+                            "%s : %s" % (repr(key), repr(Response[key])) for key in sorted(Response.keys())
+                          )
+                    )
+              )
+        else :
+            pass # sys.stderr.write("No events yet\n") # debug
+        #end if
+    #end while
 except KeyboardInterrupt :
-	pass # exit loop
+    pass # exit loop
 #end try
 
 TheConn.close()

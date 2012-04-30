@@ -14,55 +14,55 @@ import Asterisk
 
 (Opts, Args) = getopt.getopt \
   (
-	sys.argv[1:],
-	"",
-	["debug", "user=", "password="]
+    sys.argv[1:],
+    "",
+    ["debug", "user=", "password="]
   )
 User = None
 Password = None
 Debug = False
 for Keyword, Value in Opts :
-	if Keyword == "--debug" :
-		Debug = True
-	elif Keyword == "--password" :
-		Password = Value
-	elif Keyword == "--user" :
-		User = Value
-	#end if
+    if Keyword == "--debug" :
+        Debug = True
+    elif Keyword == "--password" :
+        Password = Value
+    elif Keyword == "--user" :
+        User = Value
+    #end if
 #end for
 if User == None or Password == None :
-	raise getopt.GetoptError("--user and --password are required")
+    raise getopt.GetoptError("--user and --password are required")
 #end if
 if len(Args) == 0 :
-	raise getopt.GetoptError("need at least one arg, the action to perform")
+    raise getopt.GetoptError("need at least one arg, the action to perform")
 #end if
 Parms = {}
 Vars = None
 Action = Args[0]
 for Arg in Args[1:] :
-	(Keyword, Value) = Arg.split("=", 1)
-	if Keyword.lower() == "variable" :
-		if Vars == None :
-			Vars = {}
-		#end if
-		(VarName, Value) = Value.split("=", 1)
-		Vars[VarName] = Value
-	else :
-		Parms[Keyword] = Value
-	#end if
+    (Keyword, Value) = Arg.split("=", 1)
+    if Keyword.lower() == "variable" :
+        if Vars == None :
+            Vars = {}
+        #end if
+        (VarName, Value) = Value.split("=", 1)
+        Vars[VarName] = Value
+    else :
+        Parms[Keyword] = Value
+    #end if
 #end for
 
 TheConn = Asterisk.Manager()
 if Debug :
-	TheConn.Debug = True
+    TheConn.Debug = True
 #end if
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
 TheConn.Authenticate(User, Password)
 
 if Action.lower() == "queuestatus" and len(Parms) == 0 and Vars == None :
-	Response = TheConn.GetQueueStatus()
+    Response = TheConn.GetQueueStatus()
 else :
-	Response = TheConn.Transact(Action, Parms, Vars)
+    Response = TheConn.Transact(Action, Parms, Vars)
 #end if
 sys.stdout.write(repr(Response) + "\n")
 TheConn.Transact("Logoff", {})

@@ -21,15 +21,15 @@ Response = TheConn.Transact("ParkedCalls", {}, "ParkedCallsComplete")
 sys.stdout.write(repr(Response) + "\n")
 Response = TheConn.Transact \
   (
-	Action = "Originate",
-	Parms =
-		{
-			"Channel" : "IAX2/Testing",
-			"Context" : "directout",
-			"Exten" : "8466324",
-			"Priority" : 1,
-			"Timeout" : 10000,
-		}
+    Action = "Originate",
+    Parms =
+        {
+            "Channel" : "IAX2/Testing",
+            "Context" : "directout",
+            "Exten" : "8466324",
+            "Priority" : 1,
+            "Timeout" : 10000,
+        }
   )
 sys.stdout.write(repr(Response) + "\n")
 TheConn.Transact("Logoff", {})

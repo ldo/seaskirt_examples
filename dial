@@ -13,9 +13,9 @@ import Asterisk
 
 (Opts, Args) = getopt.getopt \
   (
-	sys.argv[1:],
-	"",
-	["channel=", "context=", "timeout=", "user=", "password="]
+    sys.argv[1:],
+    "",
+    ["channel=", "context=", "timeout=", "user=", "password="]
   )
 Channel = None
 Context = None
@@ -23,26 +23,26 @@ Timeout = 10 # default
 User = None
 Password = None
 for Keyword, Value in Opts :
-	if Keyword == "--channel" :
-		Channel = Value
-	elif Keyword == "--context" :
-		Context = Value
-	elif Keyword == "--password" :
-		Password = Value
-	elif Keyword == "--timeout" :
-		Timeout = float(Value)
-	elif Keyword == "--user" :
-		User = Value
-	#end if
+    if Keyword == "--channel" :
+        Channel = Value
+    elif Keyword == "--context" :
+        Context = Value
+    elif Keyword == "--password" :
+        Password = Value
+    elif Keyword == "--timeout" :
+        Timeout = float(Value)
+    elif Keyword == "--user" :
+        User = Value
+    #end if
 #end for
 if len(Args) != 1 :
-	raise getopt.GetoptError("expecting one arg, the extension to dial")
+    raise getopt.GetoptError("expecting one arg, the extension to dial")
 #end if
 if Context == None or Channel == None :
-	raise getopt.GetoptError("--channel and --context are required")
+    raise getopt.GetoptError("--channel and --context are required")
 #end if
 if User == None or Password == None :
-	raise getopt.GetoptError("--user and --password are required")
+    raise getopt.GetoptError("--user and --password are required")
 #end if
 Extension = Args[0]
 
@@ -52,15 +52,15 @@ TheConn.Authenticate(User, Password)
 
 Response = TheConn.Transact \
   (
-	Action = "Originate",
-	Parms =
-		{
-			"Channel" : Channel,
-			"Context" : Context,
-			"Exten" : Extension,
-			"Priority" : 1,
-			"Timeout" : int(round(Timeout * 1000)),
-		}
+    Action = "Originate",
+    Parms =
+        {
+            "Channel" : Channel,
+            "Context" : Context,
+            "Exten" : Extension,
+            "Priority" : 1,
+            "Timeout" : int(round(Timeout * 1000)),
+        }
   )
 sys.stdout.write(repr(Response) + "\n")
 TheConn.Transact("Logoff", {})
