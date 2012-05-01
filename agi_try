@@ -1,0 +1,58 @@
+#!/usr/bin/python
+#+
+# Test of my AGI API.
+#
+# Written by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+#-
+
+import sys
+import os
+import time
+import select
+
+sys.path.append("/home/ldo/lib")
+
+import Asterisk
+
+Conn = Asterisk.AGI(EAGI = True)
+
+log = open("/tmp/agi_try.log", "w")
+os.dup2(log.fileno(), 2)
+for k in Conn.agi_vars :
+    sys.stderr.write("var %s = %s\n" % (k, repr(Conn.agi_vars[k]))) # debug
+#end for
+sys.stderr.write("args = %s\n" % repr(Conn.args)) # debug
+extension = Conn.get_variable("EXTEN")
+sys.stderr.write("extension to dial: %s\n" % repr(extension)) # debug
+sys.stderr.flush()
+sys.stderr.write("response to dial extension: %s\n" % repr(Conn.request("EXEC Dial %s/%s" % (Conn.args[1], extension))))
+sys.stderr.flush()
+audio = open("/tmp/agi_audio.raw", "wb")
+sys.stderr.write("%.3f: audio file opened\n" % time.time())
+sys.stderr.flush()
+while True :
+    sys.stderr.write("about to select\n") # debug
+    sys.stderr.flush()
+    readable, _, _ = select.select \
+      (
+        [Conn.audio_in], # read
+        [], # write
+        [], # error
+        4.0 # timeout
+      )
+    sys.stderr.write("done select\n") # debug
+    sys.stderr.flush()
+    if Conn.audio_in not in readable :
+        sys.stderr.write("%.3f: audio timeout\n" % time.time())
+        sys.stderr.flush()
+        break
+    #end if
+    data += Conn.audio_in.read(16000)
+    sys.stderr.write("%.3f: got %d audio bytes\n" % (time.time(), len(data)))
+    sys.stderr.flush()
+    audio.write(data)
+#end while
+audio.flush()
+audio.close()
+log.flush()
+log.close()
