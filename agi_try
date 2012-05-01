@@ -16,8 +16,12 @@ import Asterisk
 
 Conn = Asterisk.AGI(EAGI = True)
 
+# Asterisk redirects my stderr to /dev/null, so I have to open my own log file
+# if I want to see tracebacks etc
 log = open("/tmp/agi_try.log", "w")
 os.dup2(log.fileno(), 2)
+log.close()
+del log
 for k in Conn.agi_vars :
     sys.stderr.write("var %s = %s\n" % (k, repr(Conn.agi_vars[k]))) # debug
 #end for
@@ -26,6 +30,7 @@ extension = Conn.get_variable("EXTEN")
 sys.stderr.write("extension to dial: %s\n" % repr(extension)) # debug
 sys.stderr.flush()
 sys.stderr.write("response to dial extension: %s\n" % repr(Conn.request("EXEC Dial %s/%s" % (Conn.args[1], extension))))
+# FORGET IT! Dial command will not return until call terminates or fails to connect.
 sys.stderr.flush()
 audio = open("/tmp/agi_audio.raw", "wb")
 sys.stderr.write("%.3f: audio file opened\n" % time.time())
@@ -54,5 +59,3 @@ while True :
 #end while
 audio.flush()
 audio.close()
-log.flush()
-log.close()
