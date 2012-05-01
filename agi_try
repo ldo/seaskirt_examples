@@ -10,18 +10,19 @@ import os
 import time
 import select
 
-sys.path.append("/home/ldo/lib")
-
-import Asterisk
-
-Conn = Asterisk.AGI(EAGI = True)
-
 # Asterisk redirects my stderr to /dev/null, so I have to open my own log file
 # if I want to see tracebacks etc
 log = open("/tmp/agi_try.log", "w")
 os.dup2(log.fileno(), 2)
 log.close()
 del log
+
+sys.path.append("/home/ldo/lib")
+
+import Asterisk
+
+Conn = Asterisk.AGI(EAGI = True)
+Conn.Debug = True
 for k in Conn.agi_vars :
     sys.stderr.write("var %s = %s\n" % (k, repr(Conn.agi_vars[k]))) # debug
 #end for
