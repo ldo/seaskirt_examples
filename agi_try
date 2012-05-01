@@ -17,6 +17,10 @@ os.dup2(log.fileno(), 2)
 log.close()
 del log
 
+for var in os.environ :
+    sys.stderr.write("env %s = %s\n" % (var, repr(os.environ[var])))
+#end for
+
 sys.path.append("/home/ldo/lib")
 
 import Asterisk
@@ -24,7 +28,7 @@ import Asterisk
 Conn = Asterisk.AGI(EAGI = True)
 Conn.Debug = True
 for k in Conn.agi_vars :
-    sys.stderr.write("var %s = %s\n" % (k, repr(Conn.agi_vars[k]))) # debug
+    sys.stderr.write("var %s = %s\n" % (k, repr(Conn.agi_vars[k])))
 #end for
 sys.stderr.write("args = %s\n" % repr(Conn.args)) # debug
 extension = Conn.get_variable("EXTEN")
