@@ -15,9 +15,11 @@ sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
 TheConn.Authenticate("user", "secret")
 Response = TheConn.Transact("Ping", {})
 sys.stdout.write(repr(Response) + "\n")
-Response = TheConn.Transact("ZapShowChannels", {}, "ZapShowChannelsComplete")
+Response = TheConn.Transact("ListCommands", {})
 sys.stdout.write(repr(Response) + "\n")
-Response = TheConn.Transact("ParkedCalls", {}, "ParkedCallsComplete")
+Response = TheConn.Transact("CoreShowChannels", {})
+sys.stdout.write(repr(Response) + "\n")
+Response = TheConn.Transact("ParkedCalls", {})
 sys.stdout.write(repr(Response) + "\n")
 Response = TheConn.Transact \
   (
