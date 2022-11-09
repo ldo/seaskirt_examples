@@ -56,15 +56,15 @@ if User == None or Password == None :
 
 TheConn = Asterisk.Manager()
 if Debug :
-    TheConn.Debug = True
+    TheConn.debug = True
 #end if
-sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
+sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
 TheConn.Authenticate(User, Password)
 
 Response = TheConn.Transact \
   (
-    Action = "Originate",
-    Parms =
+    action = "Originate",
+    parms =
         {
             "Channel" : FromChannel,
             "Context" : ToContext,
@@ -79,8 +79,8 @@ time.sleep(5) # just for fun
 
 Response = TheConn.Transact \
   (
-    Action = "Originate",
-    Parms =
+    action = "Originate",
+    parms =
         {
             "Channel" : SpyChannel,
             "Context" : SpyContext,
@@ -88,7 +88,7 @@ Response = TheConn.Transact \
             "Priority" : 1,
             "Timeout" : int(round(Timeout * 1000)),
         },
-    Vars =
+    vars =
         {
             "VICTIM" : FromChannel,
         },

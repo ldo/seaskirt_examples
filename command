@@ -36,9 +36,9 @@ if len(Args) != 1 :
 
 TheConn = Asterisk.Manager()
 if Debug :
-    TheConn.Debug = True
+    TheConn.debug = True
 #end if
-sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
+sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
 TheConn.Authenticate(User, Password)
 Response = TheConn.DoCommand(Args[0])
 sys.stdout.write(repr(Response) + "\n")

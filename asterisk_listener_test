@@ -18,7 +18,7 @@ def Interrupted(signum, frame) :
 signal.signal(signal.SIGTERM, Interrupted)
 
 TheConn = Asterisk.Manager()
-sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
+sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
 TheConn.Authenticate("user", "secret", True)
 
 try :

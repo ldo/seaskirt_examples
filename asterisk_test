@@ -11,7 +11,7 @@ import sys
 import Asterisk
 
 TheConn = Asterisk.Manager()
-sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.Hello)
+sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
 TheConn.Authenticate("user", "secret")
 Response = TheConn.Transact("Ping", {})
 sys.stdout.write(repr(Response) + "\n")
@@ -23,8 +23,8 @@ Response = TheConn.Transact("ParkedCalls", {})
 sys.stdout.write(repr(Response) + "\n")
 Response = TheConn.Transact \
   (
-    Action = "Originate",
-    Parms =
+    action = "Originate",
+    parms =
         {
             "Channel" : "IAX2/Testing",
             "Context" : "directout",
