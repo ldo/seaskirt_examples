@@ -19,14 +19,14 @@ signal.signal(signal.SIGTERM, Interrupted)
 
 TheConn = Asterisk.Manager()
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
-TheConn.Authenticate("user", "secret", True)
+TheConn.authenticate("user", "secret", True)
 
 try :
     while True :
         (ReadReady, _, _) = \
             select.select((TheConn,), (), (), 1.0)
         if TheConn in ReadReady :
-            Response = TheConn.GetResponse()
+            Response = TheConn.get_response()
             sys.stdout.write \
               (
                     "%s: Event: \"%s\", contents {%s}\n"

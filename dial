@@ -48,9 +48,9 @@ Extension = Args[0]
 
 TheConn = Asterisk.Manager()
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
-TheConn.Authenticate(User, Password)
+TheConn.authenticate(User, Password)
 
-Response = TheConn.Transact \
+Response = TheConn.transact \
   (
     action = "Originate",
     parms =
@@ -63,5 +63,5 @@ Response = TheConn.Transact \
         }
   )
 sys.stdout.write(repr(Response) + "\n")
-TheConn.Transact("Logoff", {})
+TheConn.transact("Logoff", {})
 TheConn.close()

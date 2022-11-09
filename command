@@ -39,8 +39,8 @@ if Debug :
     TheConn.debug = True
 #end if
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
-TheConn.Authenticate(User, Password)
-Response = TheConn.DoCommand(Args[0])
+TheConn.authenticate(User, Password)
+Response = TheConn.do_command(Args[0])
 sys.stdout.write(repr(Response) + "\n")
-TheConn.Transact("Logoff", {})
+TheConn.transact("Logoff", {})
 TheConn.close()

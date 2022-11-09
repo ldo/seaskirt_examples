@@ -12,16 +12,16 @@ import Asterisk
 
 TheConn = Asterisk.Manager()
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
-TheConn.Authenticate("user", "secret")
-Response = TheConn.Transact("Ping", {})
+TheConn.authenticate("user", "secret")
+Response = TheConn.transact("Ping", {})
 sys.stdout.write(repr(Response) + "\n")
-Response = TheConn.Transact("ListCommands", {})
+Response = TheConn.transact("ListCommands", {})
 sys.stdout.write(repr(Response) + "\n")
-Response = TheConn.Transact("CoreShowChannels", {})
+Response = TheConn.transact("CoreShowChannels", {})
 sys.stdout.write(repr(Response) + "\n")
-Response = TheConn.Transact("ParkedCalls", {})
+Response = TheConn.transact("ParkedCalls", {})
 sys.stdout.write(repr(Response) + "\n")
-Response = TheConn.Transact \
+Response = TheConn.transact \
   (
     action = "Originate",
     parms =
@@ -34,5 +34,5 @@ Response = TheConn.Transact \
         }
   )
 sys.stdout.write(repr(Response) + "\n")
-TheConn.Transact("Logoff", {})
+TheConn.transact("Logoff", {})
 TheConn.close()
