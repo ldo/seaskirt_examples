@@ -11,57 +11,57 @@ import sys
 import getopt
 import Asterisk
 
-(Opts, Args) = getopt.getopt \
+opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
     ["channel=", "context=", "timeout=", "user=", "password="]
   )
-Channel = None
-Context = None
-Timeout = 10 # default
-User = None
-Password = None
-for Keyword, Value in Opts :
-    if Keyword == "--channel" :
-        Channel = Value
-    elif Keyword == "--context" :
-        Context = Value
-    elif Keyword == "--password" :
-        Password = Value
-    elif Keyword == "--timeout" :
-        Timeout = float(Value)
-    elif Keyword == "--user" :
-        User = Value
+channel = None
+context = None
+timeout = 10 # default
+user = None
+password = None
+for keyword, value in opts :
+    if keyword == "--channel" :
+        channel = value
+    elif keyword == "--context" :
+        context = value
+    elif keyword == "--password" :
+        password = value
+    elif keyword == "--timeout" :
+        timeout = float(value)
+    elif keyword == "--user" :
+        user = value
     #end if
 #end for
-if len(Args) != 1 :
+if len(args) != 1 :
     raise getopt.GetoptError("expecting one arg, the extension to dial")
 #end if
-if Context == None or Channel == None :
+if context == None or channel == None :
     raise getopt.GetoptError("--channel and --context are required")
 #end if
-if User == None or Password == None :
+if user == None or password == None :
     raise getopt.GetoptError("--user and --password are required")
 #end if
-Extension = Args[0]
+extension = args[0]
 
-TheConn = Asterisk.Manager()
-sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
-TheConn.authenticate(User, Password)
+the_conn = Asterisk.Manager()
+sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
+the_conn.authenticate(user, password)
 
-Response = TheConn.transact \
+response = the_conn.transact \
   (
     action = "Originate",
     parms =
         {
-            "Channel" : Channel,
-            "Context" : Context,
-            "Exten" : Extension,
+            "Channel" : channel,
+            "Context" : context,
+            "Exten" : extension,
             "Priority" : 1,
-            "Timeout" : int(round(Timeout * 1000)),
+            "Timeout" : int(round(timeout * 1000)),
         }
   )
-sys.stdout.write(repr(Response) + "\n")
-TheConn.transact("Logoff", {})
-TheConn.close()
+sys.stdout.write(repr(response) + "\n")
+the_conn.transact("Logoff", {})
+the_conn.close()
