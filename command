@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #+
 # Simple script using my Asterisk Manager library to perform a command function.
 #
