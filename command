@@ -9,38 +9,38 @@ import sys
 import getopt
 import Asterisk
 
-(Opts, Args) = getopt.getopt \
+opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
     ["debug", "user=", "password="]
   )
-User = None
-Password = None
-Debug = False
-for Keyword, Value in Opts :
-    if Keyword == "--debug" :
-        Debug = True
-    elif Keyword == "--password" :
-        Password = Value
-    elif Keyword == "--user" :
-        User = Value
+user = None
+password = None
+debug = False
+for keyword, value in opts :
+    if keyword == "--debug" :
+        debug = True
+    elif keyword == "--password" :
+        password = value
+    elif keyword == "--user" :
+        user = value
     #end if
 #end for
-if User == None or Password == None :
+if user == None or password == None :
     raise getopt.GetoptError("--user and --password are required")
 #end if
-if len(Args) != 1 :
+if len(args) != 1 :
     raise getopt.GetoptError("need exactly one arg, the command to perform")
 #end if
 
-TheConn = Asterisk.Manager()
-if Debug :
-    TheConn.debug = True
+the_conn = Asterisk.Manager()
+if debug :
+    the_conn.debug = True
 #end if
-sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
-TheConn.authenticate(User, Password)
-Response = TheConn.do_command(Args[0])
-sys.stdout.write(repr(Response) + "\n")
-TheConn.transact("Logoff", {})
-TheConn.close()
+sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
+the_conn.authenticate(user, password)
+response = the_conn.do_command(args[0])
+sys.stdout.write(repr(response) + "\n")
+the_conn.transact("Logoff", {})
+the_conn.close()
