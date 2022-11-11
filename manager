@@ -12,58 +12,58 @@ import sys
 import getopt
 import Asterisk
 
-(Opts, Args) = getopt.getopt \
+opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
     ["debug", "user=", "password="]
   )
-User = None
-Password = None
-Debug = False
-for Keyword, Value in Opts :
-    if Keyword == "--debug" :
-        Debug = True
-    elif Keyword == "--password" :
-        Password = Value
-    elif Keyword == "--user" :
-        User = Value
+user = None
+password = None
+debug = False
+for keyword, value in opts :
+    if keyword == "--debug" :
+        debug = True
+    elif keyword == "--password" :
+        password = value
+    elif keyword == "--user" :
+        user = value
     #end if
 #end for
-if User == None or Password == None :
+if user == None or password == None :
     raise getopt.GetoptError("--user and --password are required")
 #end if
-if len(Args) == 0 :
+if len(args) == 0 :
     raise getopt.GetoptError("need at least one arg, the action to perform")
 #end if
-Parms = {}
-Vars = None
-Action = Args[0]
-for Arg in Args[1:] :
-    (Keyword, Value) = Arg.split("=", 1)
-    if Keyword.lower() == "variable" :
-        if Vars == None :
-            Vars = {}
+parms = {}
+vars = None
+action = args[0]
+for arg in args[1:] :
+    keyword, value = arg.split("=", 1)
+    if keyword.lower() == "variable" :
+        if vars == None :
+            vars = {}
         #end if
-        (VarName, Value) = Value.split("=", 1)
-        Vars[VarName] = Value
+        varname, value = value.split("=", 1)
+        vars[varname] = value
     else :
-        Parms[Keyword] = Value
+        parms[keyword] = value
     #end if
 #end for
 
-TheConn = Asterisk.Manager()
-if Debug :
-    TheConn.debug = True
+the_conn = Asterisk.Manager()
+if debug :
+    the_conn.debug = True
 #end if
-sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
-TheConn.authenticate(User, Password)
+sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
+the_conn.authenticate(user, password)
 
-if Action.lower() == "queuestatus" and len(Parms) == 0 and Vars == None :
-    Response = TheConn.get_queue_status()
+if action.lower() == "queuestatus" and len(parms) == 0 and vars == None :
+    response = the_conn.get_queue_status()
 else :
-    Response = TheConn.transact(Action, Parms, Vars)
+    response = the_conn.transact(action, parms, vars)
 #end if
-sys.stdout.write(repr(Response) + "\n")
-TheConn.transact("Logoff", {})
-TheConn.close()
+sys.stdout.write(repr(response) + "\n")
+the_conn.transact("Logoff", {})
+the_conn.close()
