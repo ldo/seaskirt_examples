@@ -63,7 +63,7 @@ response = the_conn.transact \
             "Context" : context,
             "Exten" : extension,
             "Priority" : 1,
-            "Timeout" : int(round(timeout * 1000)),
+            "Timeout" : round(timeout * 1000),
         }
   )
 sys.stdout.write(repr(response) + "\n")
