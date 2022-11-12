@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #+
 # Test of my AGI API.
 #
@@ -25,18 +25,20 @@ sys.path.append("/home/ldo/lib")
 
 import Asterisk
 
-Conn = Asterisk.AGI(EAGI = True)
-Conn.Debug = True
-for k in Conn.agi_vars :
-    sys.stderr.write("var %s = %s\n" % (k, repr(Conn.agi_vars[k])))
+conn = Asterisk.AGI(EAGI = True)
+conn.debug = True
+for k in conn.agi_vars :
+    sys.stderr.write("var %s = %s\n" % (k, repr(conn.agi_vars[k])))
 #end for
-sys.stderr.write("args = %s\n" % repr(Conn.args)) # debug
-extension = Conn.get_variable("EXTEN")
+sys.stderr.write("args = %s\n" % repr(conn.args)) # debug
+extension = conn.get_variable("EXTEN")
 sys.stderr.write("extension to dial: %s\n" % repr(extension)) # debug
 sys.stderr.flush()
-sys.stderr.write("response to dial extension: %s\n" % repr(Conn.request("EXEC Dial %s/%s" % (Conn.args[1], extension))))
-# FORGET IT! Dial command will not return until call terminates or fails to connect.
-sys.stderr.flush()
+if False :
+    sys.stderr.write("response to dial extension: %s\n" % repr(conn.request("EXEC Dial %s/%s" % (conn.args[1], extension))))
+    # FORGET IT! Dial command will not return until call terminates or fails to connect.
+    sys.stderr.flush()
+#end if
 audio = open("/tmp/agi_audio.raw", "wb")
 sys.stderr.write("%.3f: audio file opened\n" % time.time())
 sys.stderr.flush()
@@ -45,19 +47,19 @@ while True :
     sys.stderr.flush()
     readable, _, _ = select.select \
       (
-        [Conn.audio_in], # read
+        [conn.audio_in], # read
         [], # write
         [], # error
         4.0 # timeout
       )
     sys.stderr.write("done select\n") # debug
     sys.stderr.flush()
-    if Conn.audio_in not in readable :
+    if conn.audio_in not in readable :
         sys.stderr.write("%.3f: audio timeout\n" % time.time())
         sys.stderr.flush()
         break
     #end if
-    data += Conn.audio_in.read(16000)
+    data += conn.audio_in.read(16000)
     sys.stderr.write("%.3f: got %d audio bytes\n" % (time.time(), len(data)))
     sys.stderr.flush()
     audio.write(data)
