@@ -9,7 +9,7 @@ import sys
 import time
 import select
 import signal
-import Asterisk
+import seaskirt
 
 def Interrupted(signum, frame) :
     raise KeyboardInterrupt("somebody killed me")
@@ -17,7 +17,7 @@ def Interrupted(signum, frame) :
 
 signal.signal(signal.SIGTERM, Interrupted)
 
-TheConn = Asterisk.Manager()
+TheConn = seaskirt.Manager()
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
 TheConn.authenticate("user", "secret", True)
 

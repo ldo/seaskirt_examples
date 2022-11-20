@@ -7,7 +7,7 @@
 
 import sys
 import getopt
-import Asterisk
+import seaskirt
 
 opts, args = getopt.getopt \
   (
@@ -34,7 +34,7 @@ if len(args) != 1 :
     raise getopt.GetoptError("need exactly one arg, the command to perform")
 #end if
 
-the_conn = Asterisk.Manager()
+the_conn = seaskirt.Manager()
 if debug :
     the_conn.debug = True
 #end if

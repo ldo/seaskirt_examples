@@ -13,7 +13,7 @@
 
 import sys
 import getopt
-import Asterisk
+import seaskirt
 
 opts, args = getopt.getopt \
   (
@@ -56,7 +56,7 @@ if user == None or password == None :
 #end if
 extension = args[0]
 
-the_conn = Asterisk.Manager()
+the_conn = seaskirt.Manager()
 the_conn.debug = debug
 sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
 the_conn.authenticate(user, password)

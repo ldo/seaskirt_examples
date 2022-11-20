@@ -10,7 +10,7 @@
 
 import sys
 import getopt
-import Asterisk
+import seaskirt
 
 opts, args = getopt.getopt \
   (
@@ -52,7 +52,7 @@ for arg in args[1:] :
     #end if
 #end for
 
-the_conn = Asterisk.Manager()
+the_conn = seaskirt.Manager()
 if debug :
     the_conn.debug = True
 #end if

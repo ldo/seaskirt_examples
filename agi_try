@@ -23,9 +23,9 @@ for var in os.environ :
 
 sys.path.append("/home/ldo/lib")
 
-import Asterisk
+import seaskirt
 
-conn = Asterisk.AGI(EAGI = True)
+conn = seaskirt.AGI(EAGI = True)
 conn.debug = True
 for k in conn.agi_vars :
     sys.stderr.write("var %s = %s\n" % (k, repr(conn.agi_vars[k])))

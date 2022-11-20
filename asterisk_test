@@ -8,9 +8,9 @@
 #-
 
 import sys
-import Asterisk
+import seaskirt
 
-TheConn = Asterisk.Manager()
+TheConn = seaskirt.Manager()
 sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
 TheConn.authenticate("user", "secret")
 Response = TheConn.transact("Ping", {})

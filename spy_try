@@ -14,7 +14,7 @@
 import sys
 import time
 import getopt
-import Asterisk
+import seaskirt
 
 #+
 # Call setup parameters
@@ -54,7 +54,7 @@ if User == None or Password == None :
     raise getopt.GetoptError("--user and --password are required")
 #end if
 
-TheConn = Asterisk.Manager()
+TheConn = seaskirt.Manager()
 if Debug :
     TheConn.debug = True
 #end if
