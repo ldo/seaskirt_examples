@@ -1,0 +1,50 @@
+#!/usr/bin/python3
+#+
+# Simple script using my Asterisk Manager library to perform arbitrary functions.
+#-
+
+import sys
+import getopt
+import seaskirt
+
+opts, args = getopt.getopt \
+  (
+    sys.argv[1:],
+    "",
+    ["debug", "user=", "password="]
+  )
+user = None
+password = None
+debug = False
+for keyword, value in opts :
+    if keyword == "--debug" :
+        debug = True
+    elif keyword == "--password" :
+        password = value
+    elif keyword == "--user" :
+        user = value
+    #end if
+#end for
+if user == None or password == None :
+    raise getopt.GetoptError("--user and --password are required")
+#end if
+if len(args) < 2 :
+    raise getopt.GetoptError("need at least two args, the request method and path")
+#end if
+method, path = args[0:2]
+if method not in ("DELETE", "GET", "PUT", "POST") :
+    raise ValueError("invalid method %s" % method)
+#end if
+parms = {}
+for arg in args[2:] :
+    keyword, value = arg.split("=", 1)
+    parms[keyword] = value
+#end for
+
+the_conn = seaskirt.ARI(username = user, password = password)
+if debug :
+    the_conn.debug = True
+#end if
+
+response = the_conn.request(method, path, parms)
+sys.stdout.write("response = %s\n" % repr(response)) # more TBD
