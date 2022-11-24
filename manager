@@ -52,11 +52,10 @@ for arg in args[1:] :
     #end if
 #end for
 
-the_conn = seaskirt.Manager()
+the_conn = seaskirt.Manager(debug = debug)
 if debug :
-    the_conn.debug = True
+    sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
 #end if
-sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
 the_conn.authenticate(user, password)
 
 if action.lower() == "queuestatus" and len(parms) == 0 and vars == None :
