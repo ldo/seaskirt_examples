@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #+
 # Simple listener for Asterisk events.
 #
@@ -11,22 +11,22 @@ import select
 import signal
 import seaskirt
 
-def Interrupted(signum, frame) :
+def interrupted(signum, frame) :
     raise KeyboardInterrupt("somebody killed me")
-#end Interrupted
+#end interrupted
 
-signal.signal(signal.SIGTERM, Interrupted)
+signal.signal(signal.SIGTERM, interrupted)
 
-TheConn = seaskirt.Manager()
-sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
-TheConn.authenticate("user", "secret", True)
+the_conn = seaskirt.Manager()
+sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
+the_conn.authenticate("user", "secret", True)
 
 try :
     while True :
-        (ReadReady, _, _) = \
-            select.select((TheConn,), (), (), 1.0)
-        if TheConn in ReadReady :
-            Response = TheConn.get_response()
+        (read_ready, _, _) = \
+            select.select((the_conn,), (), (), 1.0)
+        if the_conn in read_ready :
+            response = the_conn.get_response()
             sys.stdout.write \
               (
                     "%s: Event: \"%s\", contents {%s}\n"
@@ -35,10 +35,10 @@ try :
                             "%04d-%02d-%02d %02d:%02d:%02dZ"
                         %
                             time.gmtime()[:6],
-                        Response["Event"],
+                        response["Event"],
                         ", ".join
                           (
-                            "%s : %s" % (repr(key), repr(Response[key])) for key in sorted(Response.keys())
+                            "%s : %s" % (repr(key), repr(response[key])) for key in sorted(response.keys())
                           )
                     )
               )
@@ -50,4 +50,4 @@ except KeyboardInterrupt :
     pass # exit loop
 #end try
 
-TheConn.close()
+the_conn.close()
