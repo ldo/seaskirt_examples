@@ -76,7 +76,8 @@ try :
                   )
             #end if
         else :
-            pass # sys.stderr.write("No events yet\n") # debug
+            # sys.stderr.write("No events yet\n") # debug
+            sys.stderr.flush() # so I can log to file without losing events
         #end if
     #end while
 except KeyboardInterrupt :
