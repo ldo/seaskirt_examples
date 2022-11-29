@@ -20,11 +20,12 @@ opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
-    ["debug", "user=", "password="]
+    ["debug", "user=", "password=", "want="]
   )
 user = None
 password = None
 debug = False
+events_wanted = None
 for keyword, value in opts :
     if keyword == "--debug" :
         debug = True
@@ -32,6 +33,11 @@ for keyword, value in opts :
         password = value
     elif keyword == "--user" :
         user = value
+    elif keyword == "--want" :
+        if events_wanted == None :
+            events_wanted = set()
+        #end if
+        events_wanted.add(value.lower())
     #end if
 #end for
 if user == None or password == None :
@@ -52,21 +58,23 @@ try :
             select.select((the_conn,), (), (), 1.0)
         if the_conn in read_ready :
             response = the_conn.get_response()
-            sys.stdout.write \
-              (
-                    "%s: Event: \"%s\", contents {%s}\n"
-                %
-                    (
-                            "%04d-%02d-%02d %02d:%02d:%02dZ"
-                        %
-                            time.gmtime()[:6],
-                        response["Event"],
-                        ", ".join
-                          (
-                            "%s : %s" % (repr(key), repr(response[key])) for key in sorted(response.keys())
-                          )
-                    )
-              )
+            if events_wanted == None or response["Event"].lower() in events_wanted :
+                sys.stdout.write \
+                  (
+                        "%s: Event: \"%s\", contents {%s}\n"
+                    %
+                        (
+                                "%04d-%02d-%02d %02d:%02d:%02dZ"
+                            %
+                                time.gmtime()[:6],
+                            response["Event"],
+                            ", ".join
+                              (
+                                "%s : %s" % (repr(key), repr(response[key])) for key in sorted(response.keys())
+                              )
+                        )
+                  )
+            #end if
         else :
             pass # sys.stderr.write("No events yet\n") # debug
         #end if
