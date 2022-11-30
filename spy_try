@@ -1,16 +1,22 @@
 #!/usr/bin/python3
 #+
-# Test of using Asterisk ChanSpy application. Note this assumes that a context
-# named "call_monitor" has been defined in extensions.conf, something like this:
+# Seaskirt example: test of using Asterisk ChanSpy application. Note this
+# assumes that a context with the specified name has been defined in
+# extensions.conf, with a suitable variable for substituting the channel
+# to spy on, something like this:
 #
 #    [call_monitor]
 #    exten => s,1,Playback(monitored)
 #    exten => s,n,ChanSpy(${VICTIM})
 #    exten => s,n,Hangup()
 #
-# First this script initiates a call between from_channel and to_context/to_extension;
-# Then it sets up another call between the spy_channel and the spy_context/spy_extension
-# as defined above.
+# In the above example, the name of the context is “call_monitor”, the variable
+# to pass the channel is “VICTIM”, and the extension at which to start execution
+# is “s”.
+#
+# First this script initiates a call between from_channel and
+# to_context/to_extension; Then it sets up another call between the spy_channel
+# and the spy_context/spy_extension as defined above.
 #
 # Copyright 2008-2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
 # script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;

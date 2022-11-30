@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #+
-# Simple script using my Asterisk Manager library to perform arbitrary functions.
+# Seaskirt example: using my Asterisk Manager library to perform specified
+# functions.
 #
 # Copyright 2008-2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
 # script is licensed CC0

@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 #+
-# Simple script using my Asterisk Manager library to place a call.
+# Seaskirt example: using my Asterisk Manager library to place a call.
 # Example uses:
 #
+# Ringing a SIP phone and passing it a call to another number:
 #     dial --channel="PJSIP/«endpoint»" --context="«outbound-context»" «number»
+#
+# Calling a number and connecting it to an internal channel:
 #     dial --channel="Local/s@«inbound-context»" --context="«outbound-context»" «number»
 #
 # Copyright 2007-2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
