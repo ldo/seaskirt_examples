@@ -51,9 +51,9 @@ for keyword, value in opts :
     elif keyword == "--debug" :
         debug = True
     elif keyword == "--delay" :
-        delay = round(value)
+        delay = float(value)
     elif keyword == "--timeout" :
-        timeout = round(value)
+        timeout = float(value)
     elif keyword == "--from-channel" :
         from_channel = value
     elif keyword == "--to-context" :
