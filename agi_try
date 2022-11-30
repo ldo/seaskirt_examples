@@ -2,7 +2,9 @@
 #+
 # Test of my AGI API.
 #
-# Written by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+# Copyright 2012-2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
+# do with it what you will.
 #-
 
 import sys
@@ -20,8 +22,6 @@ del log
 for var in os.environ :
     sys.stderr.write("env %s = %s\n" % (var, repr(os.environ[var])))
 #end for
-
-sys.path.append("/home/ldo/lib")
 
 import seaskirt
 

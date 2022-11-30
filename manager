@@ -2,10 +2,10 @@
 #+
 # Simple script using my Asterisk Manager library to perform arbitrary functions.
 #
-# Created 2008 August 14 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
-# Remove --multi (now automatic) 2008 August 15.
-# Add --debug and variables 2008 August 15.
-# Add special QueueStatus handling 2008 August 22.
+# Copyright 2008-2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0
+# <https://creativecommons.org/publicdomain/zero/1.0/>; do with it
+# what you will.
 #-
 
 import sys
