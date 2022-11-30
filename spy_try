@@ -20,80 +20,80 @@ import seaskirt
 # Call setup parameters
 #-
 
-FromChannel = "Zap/1"
-ToContext = "loopback"
-ToExtension = "12345"
-SpyChannel = "IAX2/hypatia"
-SpyContext = "call_monitor"
-SpyExtension = "s"
+from_channel = "Zap/1"
+to_context = "loopback"
+to_extension = "12345"
+spy_channel = "IAX2/hypatia"
+spy_context = "call_monitor"
+spy_extension = "s"
 
 #+
 # Mainline
 #-
 
-(Opts, Args) = getopt.getopt \
+opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
     ["debug", "password=", "user="]
   )
-User = None
-Password = None
-Debug = False
-Timeout = 10 # default
-for Keyword, Value in Opts :
-    if Keyword == "--debug" :
-        Debug = True
-    elif Keyword == "--password" :
-        Password = Value
-    elif Keyword == "--user" :
-        User = Value
+user = None
+password = None
+debug = False
+timeout = 10 # default
+for keyword, value in opts :
+    if keyword == "--debug" :
+        debug = True
+    elif keyword == "--password" :
+        password = value
+    elif keyword == "--user" :
+        user = value
     #end if
 #end for
-if User == None or Password == None :
+if user == None or password == None :
     raise getopt.GetoptError("--user and --password are required")
 #end if
 
-TheConn = seaskirt.Manager()
-if Debug :
-    TheConn.debug = True
+the_conn = seaskirt.Manager()
+if debug :
+    the_conn.debug = True
 #end if
-sys.stdout.write("TheConn opened, hello = \"%s\"\n" % TheConn.hello)
-TheConn.authenticate(User, Password)
+sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
+the_conn.authenticate(user, password)
 
-Response = TheConn.transact \
+response = the_conn.transact \
   (
     action = "Originate",
     parms =
         {
-            "Channel" : FromChannel,
-            "Context" : ToContext,
-            "Exten" : ToExtension,
+            "Channel" : from_channel,
+            "Context" : to_context,
+            "Exten" : to_extension,
             "Priority" : 1,
-            "Timeout" : int(round(Timeout * 1000)),
+            "timeout" : int(round(timeout * 1000)),
         }
   )
-sys.stdout.write(repr(Response) + "\n")
+sys.stdout.write(repr(response) + "\n")
 
 time.sleep(5) # just for fun
 
-Response = TheConn.transact \
+response = the_conn.transact \
   (
     action = "Originate",
     parms =
         {
-            "Channel" : SpyChannel,
-            "Context" : SpyContext,
-            "Exten" : SpyExtension,
+            "Channel" : spy_channel,
+            "Context" : spy_context,
+            "Exten" : spy_extension,
             "Priority" : 1,
-            "Timeout" : int(round(Timeout * 1000)),
+            "Timeout" : int(round(timeout * 1000)),
         },
     vars =
         {
-            "VICTIM" : FromChannel,
+            "VICTIM" : from_channel,
         },
   )
-sys.stdout.write(repr(Response) + "\n")
+sys.stdout.write(repr(response) + "\n")
 
-TheConn.transact("Logoff", {})
-TheConn.close()
+the_conn.transact("Logoff", {})
+the_conn.close()
