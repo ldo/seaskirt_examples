@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #+
 # Test of using Asterisk ChanSpy application. Note this assumes that a context
 # named "call_monitor" has been defined in extensions.conf, something like this:
@@ -8,7 +8,11 @@
 #    exten => s,n,ChanSpy(${VICTIM})
 #    exten => s,n,Hangup()
 #
-# Created 2008 September 30 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+# First this script initiates a call between from_channel and to_context/to_extension;
+# Then it sets up another call between the spy_channel and the spy_context/spy_extension
+# as defined above.
+#
+# Created by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
 #-
 
 import sys
@@ -16,16 +20,6 @@ import time
 import getopt
 import seaskirt
 
-#+
-# Call setup parameters
-#-
-
-from_channel = "Zap/1"
-to_context = "loopback"
-to_extension = "12345"
-spy_channel = "IAX2/hypatia"
-spy_context = "call_monitor"
-spy_extension = "s"
 
 #+
 # Mainline
@@ -35,30 +29,66 @@ opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
-    ["debug", "password=", "user="]
+    [
+        "debug", "user=", "password=",
+        "delay=", "timeout=",
+        "from-channel=", "to-context=", "to-extension=",
+        "spy-channel=", "spy-context=", "spy-extension=", "victim-var=",
+    ]
   )
-user = None
-password = None
+user = password = None
 debug = False
+delay = 5 # default
 timeout = 10 # default
+from_channel = to_context = to_extension = None
+spy_channel = spy_context = spy_extension = None
+victim_var = "VICTIM" # default
 for keyword, value in opts :
-    if keyword == "--debug" :
-        debug = True
+    if keyword == "--user" :
+        user = value
     elif keyword == "--password" :
         password = value
-    elif keyword == "--user" :
-        user = value
+    elif keyword == "--debug" :
+        debug = True
+    elif keyword == "--delay" :
+        delay = round(value)
+    elif keyword == "--timeout" :
+        timeout = round(value)
+    elif keyword == "--from-channel" :
+        from_channel = value
+    elif keyword == "--to-context" :
+        to_context = value
+    elif keyword == "--to-extension" :
+        to_extension = value
+    elif keyword == "--spy-channel" :
+        spy_channel = value
+    elif keyword == "--spy-context" :
+        spy_context = value
+    elif keyword == "--spy-extension" :
+        spy_extension = value
+    elif keyword == "--victim-var" :
+        victim_var = value
     #end if
 #end for
-if user == None or password == None :
-    raise getopt.GetoptError("--user and --password are required")
+if (
+    any
+      (
+        v == None
+        for v in
+            (
+                user, password,
+                from_channel, to_context, to_extension,
+                spy_channel, spy_context, spy_extension,
+            )
+      )
+) :
+    raise getopt.GetoptError("missing one or more required options")
 #end if
 
-the_conn = seaskirt.Manager()
+the_conn = seaskirt.Manager(debug = debug)
 if debug :
-    the_conn.debug = True
+    sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
 #end if
-sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
 the_conn.authenticate(user, password)
 
 response = the_conn.transact \
@@ -70,12 +100,12 @@ response = the_conn.transact \
             "Context" : to_context,
             "Exten" : to_extension,
             "Priority" : 1,
-            "timeout" : int(round(timeout * 1000)),
+            "Timeout" : round(timeout * 1000),
         }
   )
 sys.stdout.write(repr(response) + "\n")
 
-time.sleep(5) # just for fun
+time.sleep(delay) # just for fun
 
 response = the_conn.transact \
   (
@@ -86,11 +116,11 @@ response = the_conn.transact \
             "Context" : spy_context,
             "Exten" : spy_extension,
             "Priority" : 1,
-            "Timeout" : int(round(timeout * 1000)),
+            "Timeout" : round(timeout * 1000),
         },
     vars =
         {
-            "VICTIM" : from_channel,
+            victim_var : from_channel,
         },
   )
 sys.stdout.write(repr(response) + "\n")
