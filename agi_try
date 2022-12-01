@@ -25,7 +25,7 @@ for var in os.environ :
 
 import seaskirt
 
-conn = seaskirt.AGI(EAGI = True)
+conn = seaskirt.Gateway(with_audio_in = True)
 conn.debug = True
 for k in conn.agi_vars :
     sys.stderr.write("var %s = %s\n" % (k, repr(conn.agi_vars[k])))

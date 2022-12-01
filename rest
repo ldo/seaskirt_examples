@@ -37,7 +37,7 @@ if len(args) < 2 :
     raise getopt.GetoptError("need at least two args, the request method and path")
 #end if
 method, path = args[0:2]
-methods = dict((m.methodstr, m) for m in seaskirt.ARIMETHOD)
+methods = dict((m.methodstr, m) for m in seaskirt.RESTMETHOD)
 if method.upper() not in methods :
     raise ValueError("invalid method %s" % method)
 #end if
@@ -47,7 +47,7 @@ for arg in args[2:] :
     parms[keyword] = value
 #end for
 
-the_conn = seaskirt.ARI(username = user, password = password)
+the_conn = seaskirt.Stasis(username = user, password = password)
 if debug :
     the_conn.debug = True
 #end if
