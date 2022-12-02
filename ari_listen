@@ -1,0 +1,74 @@
+#!/usr/bin/python3
+#+
+# Seaskirt example: simple listener for Asterisk ARI events.
+#
+# Copyright 2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
+# do with it what you will.
+#-
+
+import sys
+import time
+import select
+import signal
+import getopt
+import seaskirt
+
+def interrupted(signum, frame) :
+    raise KeyboardInterrupt("somebody killed me")
+#end interrupted
+
+opts, args = getopt.getopt \
+  (
+    sys.argv[1:],
+    "",
+    ["app=", "debug", "user=", "password=", "subscribe-all"]
+  )
+user = None
+password = None
+debug = False
+apps = []
+subscribe_all = False
+for keyword, value in opts :
+    if keyword == "--app" :
+        apps.append(value)
+    elif keyword == "--debug" :
+        debug = True # NYI
+    elif keyword == "--password" :
+        password = value
+    elif keyword == "--subscribe-all" :
+        subscribe_all = True
+    elif keyword == "--user" :
+        user = value
+    #end if
+#end for
+if user == None or password == None :
+    raise getopt.GetoptError("--user and --password are required")
+#end if
+if len(apps) == 0 :
+    raise getopt.GetoptError("--app must be specified at least once")
+#end if
+
+signal.signal(signal.SIGTERM, interrupted)
+
+ctx = seaskirt.Stasis(username = user, password = password)
+evts = ctx.listen(apps, subscribe_all)
+try :
+    while True :
+        poll = select.poll()
+        poll.register(evts, select.POLLIN)
+        happened = poll.poll()
+        if len(happened) != 0 :
+            assert happened[0][0] == evts.fileno()
+            for evt in evts.process() :
+                sys.stdout.write("event: %s\n" % repr(evt))
+            #end for
+        else :
+            # sys.stdout.write("No events yet\n") # debug
+            sys.stdout.flush() # so I can log to file without losing events
+        #end if
+    #end while
+except KeyboardInterrupt :
+    pass # exit loop
+#end try
+evts.close()
