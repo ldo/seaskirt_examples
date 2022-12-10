@@ -47,10 +47,7 @@ for arg in args[2:] :
     parms[keyword] = value
 #end for
 
-the_conn = seaskirt.Stasis(username = user, password = password)
-if debug :
-    the_conn.debug = True
-#end if
+the_conn = seaskirt.Stasis(username = user, password = password, debug = debug)
 
 response = the_conn.request(methods[method.upper()], path, parms)
 sys.stdout.write("response = %s\n" % repr(response)) # more TBD

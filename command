@@ -37,11 +37,10 @@ if len(args) != 1 :
     raise getopt.GetoptError("need exactly one arg, the command to perform")
 #end if
 
-the_conn = seaskirt.Manager(debug = debug)
+the_conn = seaskirt.Manager(username = user, password = password, debug = debug)
 if debug :
     sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
 #end if
-the_conn.authenticate(user, password)
 response = the_conn.do_command(args[0])
 if debug :
     sys.stdout.write(repr(response) + "\n")

@@ -48,11 +48,16 @@ if user == None or password == None :
 
 signal.signal(signal.SIGTERM, interrupted)
 
-the_conn = seaskirt.Manager(debug = debug)
+the_conn = seaskirt.Manager \
+  (
+    username = user,
+    password = password,
+    want_events = True,
+    debug = debug
+  )
 if debug :
     sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
 #end if
-the_conn.authenticate(user, password, want_events = True)
 
 try :
     while True :

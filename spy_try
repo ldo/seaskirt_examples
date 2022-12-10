@@ -93,11 +93,10 @@ if (
     raise getopt.GetoptError("missing one or more required options")
 #end if
 
-the_conn = seaskirt.Manager(debug = debug)
+the_conn = seaskirt.Manager(username = user, password = password, debug = debug)
 if debug :
     sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
 #end if
-the_conn.authenticate(user, password)
 
 response = the_conn.transact \
   (

@@ -74,10 +74,9 @@ if user == None or password == None :
 #end if
 extension = args[0]
 
-the_conn = seaskirt.Manager()
+the_conn = seaskirt.Manager(username = user, password = password)
 the_conn.debug = debug
 sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
-the_conn.authenticate(user, password)
 
 response = the_conn.transact \
   (
