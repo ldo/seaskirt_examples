@@ -1,0 +1,41 @@
+#!/usr/bin/python3
+#+
+# Seaskirt example: Use of FastAGI. Run this script in a separate
+# process, and you can connect to it from a dialplan context something
+# like
+#
+#     [fastagi-test]
+#     exten => s,1,Verbose("FastAGI test starting")
+#     exten => s,n,AGI(agi://127.0.0.1:9901/fastagi-test,fruit,veges)
+#     exten => s,n,Verbose("Message = ${MSG}")
+#     exten => s,n,Verbose("FastAGI test finishing")
+#     exten => s,n,Hangup()
+#
+# Copyright 2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
+# do with it what you will.
+#-
+
+import sys
+import asyncio
+import seaskirt
+
+async def main() :
+    sys.stderr.write("main starting\n"); sys.stderr.flush()
+    listener = seaskirt.GatewayAsync.listener("", 9901, debug = True)
+    try :
+        while True :
+            conn = await listener.accept()
+            sys.stderr.write("agi_vars = %s\n" % repr(conn.agi_vars)); sys.stderr.flush() # debug
+            await conn.request("SET VARIABLE MSG hi\\ there")
+            #await conn.request("HANGUP %s" % conn.agi_vars["agi_channel"])
+            await conn.request("VERBOSE hello 1")
+            await conn.close()
+        #end while
+    except KeyboardInterrupt :
+        pass # exit loop
+    #end try
+    await listener.close()
+#end main
+
+asyncio.run(main())
