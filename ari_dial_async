@@ -1,0 +1,92 @@
+#!/usr/bin/python3
+#+
+# Seaskirt example: using my Asterisk Manager library to place a call,
+# using ARI.
+#
+# Every call has two ends. In asterisk, each end is called a “channel”.
+# Channels can be created from contexts in the dialplan, by using a
+# channel specifier of the form “Local/«extension»@«context»”. Or you
+# can connect to a channel driver with a channel specifier of the form
+# “«prefix»/«endpoint»”, where “«prefix»” could for example be “PJSIP”
+# for SIP calls, or “DAHDI” for analog/ISDN calls.
+#
+# In ARI (as opposed to AMI), the “channel” argument is now called the
+# “endpoint”.
+#
+# Example uses:
+#
+# Ringing a SIP phone and passing it a call to another number:
+#     dial --channel="PJSIP/«endpoint»" --context="«outbound-context»" «number»
+#
+# Calling a number and connecting it to an internal channel:
+#     dial --channel="Local/s@«inbound-context»" --context="«outbound-context»" «number»
+#
+# Copyright 2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0
+# <https://creativecommons.org/publicdomain/zero/1.0/>; do with it
+# what you will.
+#-
+
+import sys
+import asyncio
+import getopt
+import seaskirt
+from seaskirt import \
+    RESTMETHOD
+
+opts, args = getopt.getopt \
+  (
+    sys.argv[1:],
+    "",
+    ["channel=", "context=", "debug", "timeout=", "user=", "password="]
+  )
+channel = None
+context = None
+timeout = 10 # default
+user = None
+password = None
+debug = False
+for keyword, value in opts :
+    if keyword == "--channel" :
+        channel = value
+    elif keyword == "--context" :
+        context = value
+    elif keyword == "--debug" :
+        debug = True
+    elif keyword == "--password" :
+        password = value
+    elif keyword == "--timeout" :
+        timeout = int(value)
+    elif keyword == "--user" :
+        user = value
+    #end if
+#end for
+if len(args) != 1 :
+    raise getopt.GetoptError("expecting one arg, the extension to dial")
+#end if
+if context == None or channel == None :
+    raise getopt.GetoptError("--channel and --context are required")
+#end if
+if user == None or password == None :
+    raise getopt.GetoptError("--user and --password are required")
+#end if
+extension = args[0]
+
+async def main() :
+    conn = seaskirt.StasisAsync(username = user, password = password, debug = debug)
+    response = await conn.request \
+      (
+        method = RESTMETHOD.POST,
+        path = "/channels",
+        params =
+            {
+                "endpoint" : channel,
+                "extension" : extension,
+                "context" : context,
+                "timeout" : timeout,
+            }
+      )
+    sys.stdout.write("dial response = %s\n" % repr(response))
+#end main
+
+asyncio.run(main())
