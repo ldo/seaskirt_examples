@@ -1,0 +1,68 @@
+#!/usr/bin/python3
+#+
+# Seaskirt example: simple listener for Asterisk ARI events.
+#
+# Copyright 2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
+# do with it what you will.
+#-
+
+import sys
+import time
+import asyncio
+import getopt
+import seaskirt
+
+opts, args = getopt.getopt \
+  (
+    sys.argv[1:],
+    "",
+    ["app=", "debug", "user=", "password=", "subscribe-all"]
+  )
+user = None
+password = None
+debug = False
+apps = []
+subscribe_all = False
+for keyword, value in opts :
+    if keyword == "--app" :
+        apps.append(value)
+    elif keyword == "--debug" :
+        debug = True # NYI
+    elif keyword == "--password" :
+        password = value
+    elif keyword == "--subscribe-all" :
+        subscribe_all = True
+    elif keyword == "--user" :
+        user = value
+    #end if
+#end for
+if user == None or password == None :
+    raise getopt.GetoptError("--user and --password are required")
+#end if
+if len(apps) == 0 :
+    raise getopt.GetoptError("--app must be specified at least once")
+#end if
+
+async def main() :
+    ctx = seaskirt.StasisAsync(username = user, password = password, debug = debug)
+    evts = await ctx.listen(apps, subscribe_all)
+    try :
+        while True :
+            got_one = False
+            async for evt in evts.process() :
+                sys.stdout.write("evt: %s\n" % repr(evt))
+                got_one = True
+            #end for
+            if not got_one :
+                sys.stdout.write("...\n")
+                await asyncio.sleep(1)
+            #end if
+        #end while
+    except KeyboardInterrupt :
+        pass # exit loop
+    #end try
+    await evts.close()
+#end main
+
+asyncio.run(main())
