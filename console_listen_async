@@ -1,0 +1,30 @@
+#!/usr/bin/python3
+#+
+# Seaskirt example: simple listener for output from the Asterisk console.
+# Note that the console socket is not normally accessible by nonprivileged
+# users, so this script should be run as root.
+#
+# Copyright 2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
+# do with it what you will.
+#-
+
+import sys
+import asyncio
+import seaskirt
+
+async def main() :
+    console = await seaskirt.ConsoleAsync()
+    while True :
+        await console.flush()
+        while True :
+            verbosity, response = console.get_response()
+            if len(response) == 0 :
+                break
+            sys.stdout.write("[%d] %s" % (verbosity, response))
+        #end while
+        sys.stdout.flush()
+    #end while
+#end main
+
+asyncio.run(main())
