@@ -45,7 +45,7 @@ if len(apps) == 0 :
 #end if
 
 async def main() :
-    ctx = seaskirt.StasisAsync(username = user, password = password, debug = debug)
+    ctx = await seaskirt.StasisAsync(username = user, password = password, debug = debug)
     evts = await ctx.listen(apps, subscribe_all)
     try :
         while True :
