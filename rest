@@ -1,6 +1,18 @@
 #!/usr/bin/python3
 #+
 # Seaskirt example: perform specified functions via ARI.
+# Invoke as follows:
+#
+#     rest --user=«username» --password=«password» «method» «path» [«params/vars»...]
+#
+# where «method» is the REST method, «path» is the ARI request path, and
+# the remaining arguments «params/vars» take one of the forms
+#
+#    «keyword»=«value»
+#        to set a request parameter
+#    =«keyword»=«value»
+#        to set an entry for the “variables” dictionary which will
+#        be passed as the request body (POST only).
 #
 # Copyright 2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
 # script is licensed CC0
@@ -9,6 +21,7 @@
 #-
 
 import sys
+import json
 import getopt
 import seaskirt
 
@@ -42,12 +55,26 @@ if method.upper() not in methods :
     raise ValueError("invalid method %s" % method)
 #end if
 parms = {}
+variables = None
 for arg in args[2:] :
     keyword, value = arg.split("=", 1)
-    parms[keyword] = value
+    if keyword != "" :
+        parms[keyword] = value
+    else :
+        keyword, value = value.split("=", 1)
+        if variables == None :
+            variables = {}
+        #end if
+        variables[keyword] = value
+    #end if
 #end for
+if variables != None :
+    data = {"variables" : variables}
+else :
+    data = None
+#end if
 
 the_conn = seaskirt.Stasis(username = user, password = password, debug = debug)
 
-response = the_conn.request(methods[method.upper()], path, parms)
-sys.stdout.write("response = %s\n" % repr(response)) # more TBD
+response = the_conn.request(methods[method.upper()], path, parms, data)
+sys.stdout.write("response = %s\n" % repr(response))
