@@ -17,7 +17,6 @@
 #-
 
 import sys
-import os
 import signal
 import asyncio
 import seaskirt
@@ -28,8 +27,6 @@ quitting = None
 # Trying to gracefully handle CTRL/C gets a bit involved.
 # I set a SIGINT handler to get in before KeyboardInterrupt
 # gets raised, to set result on a future that main loop can await.
-# But this seems to cause sys.exit() to get stuck, so I have
-# to avoid calling that.
 
 def set_quitting() :
     if not quitting.done() :
@@ -81,6 +78,3 @@ async def main() :
 
 signal.signal(signal.SIGINT, interrupted)
 asyncio.run(main())
-#signal.signal(signal.SIGINT, signal.SIG_DFL) # seems to make no difference
-#sys.exit(0) # seems to get stuck, so do this instead:
-os._exit(0)
