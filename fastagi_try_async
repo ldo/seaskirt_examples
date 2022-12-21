@@ -17,37 +17,70 @@
 #-
 
 import sys
+import os
+import signal
 import asyncio
 import seaskirt
 
-listeners = set()
+listeners = set() # need to keep strong refs to created tasks
+quitting = None
+
+# Trying to gracefully handle CTRL/C gets a bit involved.
+# I set a SIGINT handler to get in before KeyboardInterrupt
+# gets raised, to set result on a future that main loop can await.
+# But this seems to cause sys.exit() to get stuck, so I have
+# to avoid calling that.
+
+def set_quitting() :
+    if not quitting.done() :
+        quitting.set_result(None)
+    #end if
+#end set_quitting
+
+def interrupted(signum, frame) :
+    sys.stderr.write("interrupted\n")
+    if not quitting.done() :
+        quitting.get_loop().call_soon_threadsafe(set_quitting)
+    #end if
+#end interrupted
 
 async def handle_conn(conn) :
+    "new task spawned to handle each incoming connection."
     sys.stderr.write("start conn, agi_vars = %s\n" % repr(conn.agi_vars)); sys.stderr.flush() # debug
     await conn.request("SET VARIABLE MSG hi\\ there")
     #await conn.request("HANGUP %s" % conn.agi_vars["agi_channel"])
+    await asyncio.sleep(3) # let user interrupt at this point if they like
     await conn.request("VERBOSE hello 1")
     await conn.close()
     sys.stderr.write("end conn\n") # debug
 #end handle_conn
 
 async def main() :
-    sys.stderr.write("main starting\n"); sys.stderr.flush()
+    global quitting
+    quitting = asyncio.get_running_loop().create_future()
+    sys.stderr.write("main starting\n")
     listen = seaskirt.GatewayAsync.listener("", 9901, debug = True)
-    try :
-        while True :
-            conn = await listen.accept()
-            listener = asyncio.create_task(handle_conn(conn))
-            listeners.add(listener)
-            listener.add_done_callback(listeners.discard)
-        #end while
-    except KeyboardInterrupt :
-        pass # exit loop
-    #end try
+    while True :
+        accepting = asyncio.create_task(listen.accept())
+        await asyncio.wait([accepting, quitting], return_when = asyncio.FIRST_COMPLETED)
+        if quitting.done() :
+            accepting.cancel()
+            break
+        #end if
+        conn = accepting.result()
+        listener = asyncio.create_task(handle_conn(conn))
+        listeners.add(listener)
+        listener.add_done_callback(listeners.discard)
+    #end while
     for listener in listeners :
         listener.cancel()
     #end for
     await listen.close()
+    sys.stderr.write("main finishing\n")
 #end main
 
+signal.signal(signal.SIGINT, interrupted)
 asyncio.run(main())
+#signal.signal(signal.SIGINT, signal.SIG_DFL) # seems to make no difference
+#sys.exit(0) # seems to get stuck, so do this instead:
+os._exit(0)
