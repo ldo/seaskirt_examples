@@ -21,7 +21,7 @@ import signal
 import asyncio
 import seaskirt
 
-listeners = set() # need to keep strong refs to created tasks
+connections = set() # need to keep strong refs to created tasks
 quitting = None
 
 # Trying to gracefully handle CTRL/C gets a bit involved.
@@ -65,12 +65,12 @@ async def main() :
             break
         #end if
         conn = accepting.result()
-        listener = asyncio.create_task(handle_conn(conn))
-        listeners.add(listener)
-        listener.add_done_callback(listeners.discard)
+        connection = asyncio.create_task(handle_conn(conn))
+        connections.add(connection)
+        connection.add_done_callback(connections.discard)
     #end while
-    for listener in listeners :
-        listener.cancel()
+    for connection in connections :
+        connection.cancel()
     #end for
     await listen.close()
     sys.stderr.write("main finishing\n")
