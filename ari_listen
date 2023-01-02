@@ -18,6 +18,7 @@ def interrupted(signum, frame) :
     raise KeyboardInterrupt("somebody killed me")
 #end interrupted
 
+poll_delay = 0.25 # to ensure output gets periodically flushed
 opts, args = getopt.getopt \
   (
     sys.argv[1:],
@@ -57,7 +58,7 @@ try :
     while True :
         poll = select.poll()
         poll.register(evts, select.POLLIN)
-        happened = poll.poll()
+        happened = poll.poll(round(poll_delay * 1000))
         if len(happened) != 0 :
             assert happened[0][0] == evts.fileno()
             for evt in evts.process() :
