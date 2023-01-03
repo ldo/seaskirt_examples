@@ -2,7 +2,7 @@
 #+
 # Seaskirt example: simple listener for Asterisk ARI events.
 #
-# Copyright 2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# Copyright 2022-2023 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
 # script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
 # do with it what you will.
 #-
@@ -55,23 +55,10 @@ signal.signal(signal.SIGTERM, interrupted)
 ctx = seaskirt.Stasis(username = user, password = password)
 evts = ctx.listen(apps, subscribe_all)
 try :
-    got_events = True # to start with
     while True :
-        if got_events :
-            # don’t bother actually blocking, since there might
-            # already be more data ready to be read from socket,
-            # that I won’t get another notification about.
-            happened = [(evts.fileno(), select.POLLIN),]
-        else :
-            poll = select.poll()
-            poll.register(evts, select.POLLIN)
-            happened = poll.poll(round(poll_delay * 1000))
-        #end if
-        got_events = False
-        if len(happened) != 0 :
-            assert happened[0][0] == evts.fileno()
+        readable = evts.wait_readable(poll_delay)
+        if readable :
             for evt in evts.process() :
-                got_events = True
                 sys.stdout.write("event: %s\n" % repr(evt))
             #end for
         else :
