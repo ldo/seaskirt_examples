@@ -23,7 +23,7 @@ opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
-    ["app=", "debug", "user=", "password=", "subscribe-all"]
+    ["app=", "debug", "password=", "subscribe-all", "user="]
   )
 user = None
 password = None
@@ -56,15 +56,14 @@ ctx = seaskirt.Stasis(username = user, password = password)
 evts = ctx.listen(apps, subscribe_all)
 try :
     while True :
-        readable = evts.wait_readable(poll_delay)
-        if readable :
-            for evt in evts.process() :
-                sys.stdout.write("event: %s\n" % repr(evt))
-            #end for
-        else :
-            # sys.stdout.write("No events yet\n") # debug
-            sys.stdout.flush() # so I can log to file without losing events
-        #end if
+        while True :
+            evt = evts.get_event(poll_delay)
+            if evt != None :
+                sys.stdout.write("evt: %s\n" % repr(evt))
+            else :
+                sys.stdout.flush() # so I can log to file without losing events
+            #end if
+        #end while
     #end while
 except KeyboardInterrupt :
     pass # exit loop
