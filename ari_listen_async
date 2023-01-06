@@ -2,13 +2,14 @@
 #+
 # Seaskirt example: simple listener for Asterisk ARI events.
 #
-# Copyright 2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# Copyright 2022-2023 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
 # script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
 # do with it what you will.
 #-
 
 import sys
 import time
+import signal
 import asyncio
 import getopt
 import seaskirt
@@ -45,22 +46,60 @@ if len(apps) == 0 :
     raise getopt.GetoptError("--app must be specified at least once")
 #end if
 
+run_done = None
+
+def set_run_done() :
+    if not run_done.done() :
+        run_done.set_result(None)
+    #end if
+#end set_run_done
+
+def interrupted(signum, frame) :
+    if run_done != None :
+        run_done.get_loop().call_soon_threadsafe(set_run_done)
+    #end if
+#end interrupted
+
+signal.signal(signal.SIGTERM, interrupted) # kill(1) command
+signal.signal(signal.SIGINT, interrupted) # CTRL/C on controlling terminal
+
 async def main() :
-    ctx = await seaskirt.StasisAsync(username = user, password = password, debug = debug)
-    evts = await ctx.listen(apps, subscribe_all)
-    try :
-        while True :
-            evt = await evts.get_event(poll_delay)
-            if evt != None :
-                sys.stdout.write("evt: %s\n" % repr(evt))
-            else :
-                sys.stdout.flush() # so I can log to file without losing events
-            #end if
-        #end while
-    except KeyboardInterrupt :
-        pass # exit loop
-    #end try
-    await evts.close()
+    global run_done
+    run_done = asyncio.get_running_loop().create_future()
+    # Note that run_done can be set at any point in following
+    ctx = evts = evt = None
+    while True :
+        if ctx == None :
+            step = seaskirt.StasisAsync(username = user, password = password, debug = debug)
+        elif evts == None :
+            step = ctx.listen(apps, subscribe_all)
+        else :
+            step = evts.get_event(poll_delay)
+        #end if
+        step = asyncio.create_task(step)
+        await asyncio.wait([step, run_done], return_when = asyncio.FIRST_COMPLETED)
+        if run_done.done() :
+            step.cancel()
+            break
+        #end if
+        assert step.done()
+        step = step.result()
+        if ctx == None :
+            ctx = step
+        elif evts == None :
+            evts = step
+        else :
+            evt = step
+        #end if
+        if evt != None :
+            sys.stdout.write("evt: %s\n" % repr(evt))
+        else :
+            sys.stdout.flush() # so I can log to file without losing events
+        #end if
+    #end while
+    if evts != None :
+        await evts.close()
+    #end if
 #end main
 
 asyncio.run(main())
