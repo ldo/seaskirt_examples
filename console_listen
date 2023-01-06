@@ -12,14 +12,14 @@
 import sys
 import seaskirt
 
+poll_delay = 0.25 # to ensure output gets periodically flushed
+
 console = seaskirt.Console()
 while True :
-    console.flush()
-    while True :
-        verbosity, response = console.get_response()
-        if len(response) == 0 :
-            break
+    verbosity, response = console.get_response(poll_delay)
+    if response != None :
         sys.stdout.write("[%d] %s" % (verbosity, response))
-    #end while
-    sys.stdout.flush()
+    else :
+        sys.stdout.flush()
+    #end if
 #end while

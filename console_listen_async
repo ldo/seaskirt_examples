@@ -13,17 +13,17 @@ import sys
 import asyncio
 import seaskirt
 
+poll_delay = 0.25 # to ensure output gets periodically flushed
+
 async def main() :
     console = await seaskirt.ConsoleAsync()
     while True :
-        await console.flush()
-        while True :
-            verbosity, response = console.get_response()
-            if len(response) == 0 :
-                break
+        verbosity, response = await console.get_response()
+        if response != None :
             sys.stdout.write("[%d] %s" % (verbosity, response))
-        #end while
-        sys.stdout.flush()
+        else :
+            sys.stdout.flush()
+        #end if
     #end while
 #end main
 
