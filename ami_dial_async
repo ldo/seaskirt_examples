@@ -38,13 +38,14 @@ opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
-    ["async", "channel=", "context=", "debug", "timeout=", "user=", "password="]
+    ["async", "channel=", "context=", "debug", "password=", "ssl-ca=", "timeout=", "user="]
   )
 channel = None
 context = None
 timeout = 10 # default
 user = None
 password = None
+ssl_ca = None
 debug = False
 call_async = False
 for keyword, value in opts :
@@ -58,6 +59,8 @@ for keyword, value in opts :
         debug = True
     elif keyword == "--password" :
         password = value
+    elif keyword == "--ssl-ca" :
+        ssl_ca = value
     elif keyword == "--timeout" :
         timeout = float(value)
     elif keyword == "--user" :
@@ -80,6 +83,7 @@ async def main() :
       (
         username = user,
         password = password,
+        ssl_context = ssl_ca,
         want_events = call_async,
         id_gen = seaskirt.naturals()
       )

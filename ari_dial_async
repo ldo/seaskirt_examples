@@ -73,7 +73,13 @@ if user == None or password == None :
 extension = args[0]
 
 async def main() :
-    conn = await seaskirt.StasisAsync(username = user, password = password, debug = debug)
+    conn = await seaskirt.StasisAsync \
+      (
+        username = user,
+        password = password,
+        timeout = timeout,
+        debug = debug
+      )
     response = await conn.request \
       (
         method = RESTMETHOD.POST,
@@ -87,6 +93,7 @@ async def main() :
             }
       )
     sys.stdout.write("dial response = %s\n" % repr(response))
+    await conn.close()
 #end main
 
 asyncio.run(main())

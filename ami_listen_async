@@ -19,10 +19,11 @@ opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
-    ["debug", "user=", "password=", "want="]
+    ["debug", "password=", "ssl-ca=", "user=", "want="]
   )
 user = None
 password = None
+ssl_ca = None
 debug = False
 events_wanted = None
 for keyword, value in opts :
@@ -30,6 +31,8 @@ for keyword, value in opts :
         debug = True
     elif keyword == "--password" :
         password = value
+    elif keyword == "--ssl-ca" :
+        ssl_ca = value
     elif keyword == "--user" :
         user = value
     elif keyword == "--want" :
@@ -71,6 +74,7 @@ async def main() :
               (
                 username = user,
                 password = password,
+                ssl_context = ssl_ca,
                 want_events = True,
                 debug = debug
               )
