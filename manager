@@ -42,7 +42,7 @@ vars = None
 action = args[0]
 for arg in args[1:] :
     keyword, value = arg.split("=", 1)
-    if keyword.lower() == "variable" :
+    if keyword.lower() == "variable" and "=" in value :
         if vars == None :
             vars = {}
         #end if
