@@ -1,9 +1,13 @@
 #!/usr/bin/python3
 #+
 # Seaskirt example: using my Asterisk Manager library to perform specified
-# functions.
+# functions. Example invocations:
 #
-# Copyright 2008-2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+#     manager --user=«user» --password=«password» listcommands
+#     manager --user=«user» --password=«password» listcategories filename=extensions.conf
+#     manager --user=«user» --password=«password» getvar variable=CONSOLE
+#
+# Copyright 2008-2023 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
 # script is licensed CC0
 # <https://creativecommons.org/publicdomain/zero/1.0/>; do with it
 # what you will.
