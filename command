@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 #+
 # Seaskirt example: using my Asterisk Manager library to perform a command
-# function.
+# function. Example invocations:
 #
-# Copyright 2010-2022 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+#     command --user=«user» --password=«password» "core show applications"
+#     command --user=«user» --password=«password» "moh show files"
+#
+# Copyright 2010-2023 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
 # script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
 # do with it what you will.
 #-
@@ -16,7 +19,7 @@ opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
-    ["debug", "user=", "password="]
+    ["debug", "password=", "user="]
   )
 user = None
 password = None
