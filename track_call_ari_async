@@ -1,0 +1,198 @@
+#!/usr/bin/python3
+#+
+# This script originates a call and monitors events to
+# determine the status of the number dialled. This version
+# uses ARI without event filtering.
+#
+# Invoke as follows:
+#
+#     track_call --user=«username» --password=«password» [--debug] \
+#          «inchannel» «outcontext» «outnumber»
+#
+# Copyright 2023 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0
+# <https://creativecommons.org/publicdomain/zero/1.0/>; do with it
+# what you will.
+#-
+
+import sys
+import time
+import math
+import signal
+import asyncio
+import getopt
+import seaskirt
+from seaskirt import \
+    RESTMETHOD
+
+APPNAME = "track_call"
+  # just a dummy, because I cannot register an event listener without
+  # specifying this
+
+debug = False
+username = password = None
+event_timeout = 30 # how long to wait for next significant event
+opts, args = getopt.getopt \
+  (
+    sys.argv[1:],
+    "",
+    ["debug", "password=", "user="]
+  )
+for keyword, value in opts :
+    if keyword == "--debug" :
+        debug = True
+    elif keyword == "--password" :
+        password = value
+    elif keyword == "--user" :
+        username = value
+    #end if
+#end for
+if username == None or password == None :
+    raise getopt.GetoptError("need --user and --password")
+#end if
+if len(args) != 3 :
+    raise getopt.GetoptError("usage: %s «inchannel» «outcontext» «outnumber»" % sys.argv[0])
+#end if
+inchannel, outcontext, outnumber = args
+
+run_done = None
+
+def logline(msg) :
+    now = time.time()
+    now_ts = time.gmtime(math.floor(now))
+    now_frac = now - math.floor(now)
+    timestamp = \
+        (
+            "%0.4d%0.2d%0.2d-%0.2d%0.2d%06.3fZ"
+        %
+            (
+                now_ts.tm_year, now_ts.tm_mon, now_ts.tm_mday,
+                now_ts.tm_hour, now_ts.tm_min, now_ts.tm_sec + now_frac,
+            )
+        )
+    sys.stderr.write("%s: %s\n" % (timestamp, msg))
+#end logline
+
+def set_run_done() :
+    if not run_done.done() :
+        run_done.set_result(None)
+    #end if
+#end set_run_done
+
+def interrupted(signum, frame) :
+    if run_done != None :
+        sys.stderr.write("setting run_done\n")
+        run_done.get_loop().call_soon_threadsafe(set_run_done)
+    #end if
+#end interrupted
+
+signal.signal(signal.SIGTERM, interrupted) # kill(1) command
+signal.signal(signal.SIGINT, interrupted) # user hit CTRL/C
+
+async def main() :
+    try :
+        global run_done
+        loop = asyncio.get_running_loop()
+        run_done = loop.create_future()
+        control = await seaskirt.StasisAsync \
+          (
+            username = username,
+            password = password,
+            debug = debug
+          )
+        listener = await control.listen(apps = [APPNAME], subscribe_all = True)
+          # once created, application name remains known to Asterisk,
+          # and gets mentioned in the log as missing events if no
+          # process is listening for them with this name, from that
+          # point on. There seems to be no way to deregister this name
+          # and stop the messages, short of restarting the Asterisk
+          # process.
+        call_id = peer_id = None
+        logline("Calling %s on %s" % (outnumber, outcontext))
+        response = await control.request \
+          (
+            method = RESTMETHOD.POST,
+            path = "/channels",
+            params =
+                {
+                    "endpoint" : inchannel,
+                    "extension" : outnumber,
+                    "context" : outcontext,
+                }
+          )
+        logline("Originate response = %s" % repr(response))
+        awaiting_event = None
+        while True :
+            if awaiting_event == None :
+                awaiting_event = asyncio.create_task \
+                  (
+                    listener.get_event(timeout = event_timeout)
+                  )
+            #end if
+            await asyncio.wait \
+              (
+                [awaiting_event, run_done],
+                return_when = asyncio.FIRST_COMPLETED
+              )
+            if run_done.done() :
+                break
+            if awaiting_event.done() :
+                event = awaiting_event.result()
+                awaiting_event = None
+                if event == None :
+                    logline("No response from Manager in %s seconds" % event_timeout)
+                    break
+                #end if
+                if debug :
+                    logline("event: %s" % repr(event))
+                #end if
+                event_type = event["type"]
+                if event_type == "ChannelCreated" :
+                    call_id = event["channel"]["id"]
+                    logline \
+                      (
+                            "Progress: Call ID for %s = %s, name = %s"
+                        %
+                            (outnumber, call_id, event["channel"]["name"])
+                      )
+                elif event_type == "ChannelStateChange" and event["channel"]["id"] == peer_id :
+                    state = event["channel"]["state"]
+                    logline("Call %s in state %s" % (outnumber, state))
+                elif event_type == "ChannelDestroyed" and event["channel"]["id"] == call_id :
+                    logline("Call %s hung up with code %s" % (call_id, event["cause"]))
+                    set_run_done()
+                elif event_type == "Dial" :
+                    if (
+                            "peer" in event
+                        and
+                            "caller" in event["peer"]
+                        and
+                            event["peer"]["caller"]["number"] == outnumber
+                    ) :
+                        if peer_id == None :
+                            peer_id = event["peer"]["id"]
+                            logline \
+                              (
+                                    "Dial for %s = %s, name = %s"
+                                %
+                                    (outnumber, peer_id, event["peer"]["name"])
+                              )
+                        #end if
+                        if event["dialstatus"] == "PROGRESS" and event["peer"]["id"] == peer_id :
+                            logline("Call %s progressing" % outnumber)
+                        #end if
+                    #end if
+                #end if
+            #end if
+        #end while
+        if awaiting_event != None :
+            awaiting_event.cancel()
+        #end if
+        await listener.close()
+        logline("track_call ends")
+    except Exception as err :
+        sys.stderr.write("main fail %s\n" % repr(err))
+    #end try
+#end main
+
+asyncio.run(main())
