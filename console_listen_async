@@ -18,7 +18,7 @@ poll_delay = 0.25 # to ensure output gets periodically flushed
 async def main() :
     console = await seaskirt.ConsoleAsync()
     while True :
-        verbosity, response = await console.get_response()
+        verbosity, response = await console.get_response(poll_delay)
         if response != None :
             sys.stdout.write("[%d] %s" % (verbosity, response))
         else :
