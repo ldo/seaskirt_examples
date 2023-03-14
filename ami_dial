@@ -37,13 +37,14 @@ opts, args = getopt.getopt \
   (
     sys.argv[1:],
     "",
-    ["async", "channel=", "context=", "debug", "timeout=", "user=", "password="]
+    ["async", "channel=", "context=", "debug", "password=", "ssl-ca=", "timeout=", "user="]
   )
 channel = None
 context = None
 timeout = 10 # default
 user = None
 password = None
+ssl_ca = None
 debug = False
 call_async = False
 for keyword, value in opts :
@@ -57,6 +58,8 @@ for keyword, value in opts :
         debug = True
     elif keyword == "--password" :
         password = value
+    elif keyword == "--ssl-ca" :
+        ssl_ca = value
     elif keyword == "--timeout" :
         timeout = float(value)
     elif keyword == "--user" :
@@ -74,23 +77,45 @@ if user == None or password == None :
 #end if
 extension = args[0]
 
-the_conn = seaskirt.Manager(username = user, password = password)
-the_conn.debug = debug
-sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
-
-response = the_conn.transact \
+the_conn = seaskirt.Manager \
   (
-    action = "Originate",
-    parms =
-        {
-            "Channel" : channel,
-            "Context" : context,
-            "Exten" : extension,
-            "Priority" : 1,
-            "Async" : ("false", "true")[call_async],
-            "Timeout" : round(timeout * 1000),
-        }
+    username = user,
+    password = password,
+    ssl_context = ssl_ca,
+    want_events = call_async,
+    id_gen = seaskirt.naturals(),
+    timeout = timeout,
+    debug = debug
   )
-sys.stdout.write(repr(response) + "\n")
+sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
+originate_args = \
+    {
+        "action" : "Originate",
+        "parms" :
+            {
+                "Channel" : channel,
+                "Context" : context,
+                "Exten" : extension,
+                "Priority" : 1,
+                "Async" : ("false", "true")[call_async],
+                "Timeout" : round(timeout * 1000),
+            },
+    }
+if call_async :
+    the_conn.send_request(**originate_args)
+    # the OriginateResponse event is only returned on this
+    # connection, not to any other listener. Unfortunately,
+    # to actually received the event, I have to enable
+    # receipt of all other events.
+    while True :
+        event = the_conn.get_response()
+        sys.stdout.write("async response %s\n" % repr(event))
+        if event.get("Event") == "OriginateResponse" :
+            break
+    #end while
+else :
+    response = the_conn.transact(**originate_args)
+    sys.stdout.write(repr(response) + "\n")
+#end if
 the_conn.transact("Logoff", {})
 the_conn.close()

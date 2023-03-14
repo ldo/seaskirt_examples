@@ -85,9 +85,10 @@ async def main() :
         password = password,
         ssl_context = ssl_ca,
         want_events = call_async,
-        id_gen = seaskirt.naturals()
+        id_gen = seaskirt.naturals(),
+        timeout = timeout,
+        debug = debug
       )
-    the_conn.debug = debug
     sys.stdout.write("the_conn opened, hello = \"%s\"\n" % the_conn.hello)
     originate_args = \
         {
