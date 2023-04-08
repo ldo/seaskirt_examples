@@ -1,0 +1,138 @@
+#!/usr/bin/python3
+#+
+# Seaskirt example: Use of AGI.
+#
+# This script demonstrates the use of AGI to remap the number being
+# dialled. The original number begins with a single-digit area code
+# with no “0” prefix (the old convention for ISDN calls). This number
+# is looked up in a table to decide which number ranges correspond to
+# the local dialling area, for which the area-code prefix is stripped,
+# while the rest have the “0” prepended to turn them into toll calls.
+#
+# The remapping could be implemented entirely in the dialplan, using
+# Asterisk’s string-manipulation functions. Putting it in an external
+# program allows the data to come from a database, which can be easily
+# updated without having to reload the dialplan.
+#
+# An example use of this in extensions.conf could be something like
+#
+#     [remap-number-demo]
+#     exten => _X.,1,Verbose(EXTEN before remap: ${EXTEN})
+#     exten => _X.,n,AGI(/usr/local/asterisk/agi-bin/agi_remap_numbers_async,NEWEXTEN)
+#     exten => _X.,n,Verbose(EXTEN after remap: ${NEWEXTEN})
+#     ; ... actually call the number in ${NEWEXTEN} etc ...
+#     exten => _X.,n,Hangup()
+#
+# Note how the AGI takes the name of the variable into which to put
+# the remapped extension; assigning this back to the ${EXTEN} variable
+# doesn’t work.
+#
+# Copyright 2023 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>. This
+# script is licensed CC0 <https://creativecommons.org/publicdomain/zero/1.0/>;
+# do with it what you will.
+#-
+
+import sys
+import os
+import asyncio
+import seaskirt
+
+debug = False
+  # set to True to see more details of operation
+
+# Asterisk redirects my stderr to /dev/null, so I have to open my own log file
+# if I want to see tracebacks etc
+if debug :
+    log = open("/tmp/agi_try.log", "w")
+    os.dup2(log.fileno(), 2)
+    log.close()
+    del log
+#end if
+
+#+
+# Mapping table
+#
+# In a production program, this would come from a database, but
+# here it is an in-memory table for demo purposes. It takes the
+# form of a dict mapping the area code to a set of prefix match
+# patterns for local numbers. Each pattern takes the form of a
+# sequence of elements, either a single literal digit or a set
+# of alternative matching digits.
+#-
+
+LOCAL_EXTENS = \
+    {
+        7 :
+            (
+                (8, 2, set(range(0, 6)) | {7, 9}),
+                (8, {3, 4, 5}),
+                (9,),
+            ),
+    }
+
+#+
+# Mainline
+#-
+
+async def main() :
+    srv = await seaskirt.GatewayAsync(debug = debug)
+    orig_exten = srv.agi_vars["agi_extension"]
+    if debug :
+        sys.stderr.write("Remap exten = %s\n" % repr(orig_exten))
+    #end if
+    digits = tuple \
+      (
+        (lambda : None, lambda : d)[0 <= d <= 9]()
+        for c in orig_exten
+        for d in (ord(c) - ord('0'),)
+      )
+    if debug :
+        sys.stderr.write("Exten digits = %s\n" % repr(digits))
+    #end if
+    if len(digits) == 0 or None in digits :
+        await srv.request("VERBOSE \"Exten not entirely numeric--disconnecting!\" 2")
+        await srv.request("EXEC Hangup 21") # call rejected
+    else :
+        remap = LOCAL_EXTENS.get(digits[0])
+        if remap != None :
+            remap_iter = iter(remap)
+            match = False
+            while True :
+                this_remap = next(remap_iter, None)
+                if this_remap == None :
+                    break
+                i = 0
+                while True :
+                    if i == len(this_remap) :
+                        match = True
+                        break
+                    #end if
+                    this_digit = this_remap[i]
+                    if isinstance(this_digit, set) :
+                        if not digits[i + 1] in this_digit :
+                            break
+                    elif isinstance(this_digit, int) :
+                        if digits[i + 1] != this_digit :
+                            break
+                    #end if
+                    i += 1
+                #end while
+                if match :
+                    digits = digits[1:] # drop area code
+                    break
+                #end if
+            #end while
+            if not match :
+                digits = (0,) + digits
+            #end if
+        #end if
+        remapped_exten = "".join(chr(d + ord('0')) for d in digits)
+        if debug :
+            sys.stderr.write("Remapped exten = %s\n" % repr(remapped_exten))
+        #end if
+        await srv.request("SET VARIABLE %s %s" % (srv.args[1], remapped_exten))
+    #end if
+    await srv.close()
+#end main
+
+asyncio.run(main())
