@@ -4,10 +4,11 @@
 #
 # This script demonstrates the use of AGI to remap the number being
 # dialled. The original number begins with a single-digit area code
-# with no “0” prefix (the old convention for ISDN calls). This number
-# is looked up in a table to decide which number ranges correspond to
-# the local dialling area, for which the area-code prefix is stripped,
-# while the rest have the “0” prepended to turn them into toll calls.
+# with no “0” prefix (the old convention for ISDN calls). If the area
+# code is local, then this number is looked up in a table to decide
+# which number ranges correspond to the local dialling area, for which
+# the area-code prefix is stripped. For numbers not in the local dialling
+# area, a “0” is prepended to turn them into toll calls.
 #
 # The remapping could be implemented entirely in the dialplan, using
 # Asterisk’s string-manipulation functions. Putting it in an external
@@ -60,15 +61,13 @@ if debug :
 # of alternative matching digits.
 #-
 
+LOCAL_AREA_CODE = (7,)
 LOCAL_EXTENS = \
-    {
-        7 :
-            (
-                (8, 2, set(range(0, 6)) | {7, 9}),
-                (8, {3, 4, 5}),
-                (9,),
-            ),
-    }
+    (
+        (8, 2, set(range(0, 6)) | {7, 9}),
+        (8, {3, 4, 5}),
+        (9,),
+    )
 
 #+
 # Mainline
@@ -93,10 +92,9 @@ async def main() :
         await srv.request("VERBOSE \"Exten not entirely numeric--disconnecting!\" 2")
         await srv.request("EXEC Hangup 21") # call rejected
     else :
-        remap = LOCAL_EXTENS.get(digits[0])
-        if remap != None :
-            remap_iter = iter(remap)
-            match = False
+        match = False
+        if digits[:len(LOCAL_AREA_CODE)] == LOCAL_AREA_CODE :
+            remap_iter = iter(LOCAL_EXTENS)
             while True :
                 this_remap = next(remap_iter, None)
                 if this_remap == None :
@@ -109,22 +107,22 @@ async def main() :
                     #end if
                     this_digit = this_remap[i]
                     if isinstance(this_digit, set) :
-                        if not digits[i + 1] in this_digit :
+                        if not digits[i + len(LOCAL_AREA_CODE)] in this_digit :
                             break
                     elif isinstance(this_digit, int) :
-                        if digits[i + 1] != this_digit :
+                        if digits[i + len(LOCAL_AREA_CODE)] != this_digit :
                             break
                     #end if
                     i += 1
                 #end while
                 if match :
-                    digits = digits[1:] # drop area code
+                    digits = digits[len(LOCAL_AREA_CODE):]
                     break
                 #end if
             #end while
-            if not match :
-                digits = (0,) + digits
-            #end if
+        #end if
+        if not match :
+            digits = (0,) + digits
         #end if
         remapped_exten = "".join(chr(d + ord('0')) for d in digits)
         if debug :

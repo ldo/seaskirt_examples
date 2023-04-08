@@ -43,7 +43,7 @@ def interrupted(signum, frame) :
 
 async def handle_conn(conn) :
     "new task spawned to handle each incoming connection."
-    sys.stderr.write("start conn, agi_vars = %s\n" % repr(conn.agi_vars)); sys.stderr.flush() # debug
+    sys.stderr.write("start conn, agi_vars = %s, args = %s\n" % (repr(conn.agi_vars), repr(conn.args))); sys.stderr.flush() # debug
     await conn.request("SET VARIABLE MSG hi\\ there")
     #await conn.request("HANGUP %s" % conn.agi_vars["agi_channel"])
     await asyncio.sleep(3) # let user interrupt at this point if they like
