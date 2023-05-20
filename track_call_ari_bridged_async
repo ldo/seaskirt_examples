@@ -192,23 +192,28 @@ async def main() :
                     channel_id = event["channel"]["id"]
                     if channel_id in (in_channel_id, out_channel_id) :
                         logline("Handling Stasis for channel %s" % channel_id)
-                        await control.request \
-                          (
-                            method = RESTMETHOD.POST,
-                            path = "/channels/%s/answer" % channel_id
-                          )
-                        await control.request \
-                          (
-                            method = RESTMETHOD.POST,
-                            path = "/bridges/%s/addChannel" % bridge_id,
-                            params =
-                                {
-                                    "channel" :
-                                        (in_channel_id, out_channel_id)
-                                            [channel_id == out_channel_id],
-                                    "role" : ("inbound", "outbound")[channel_id == out_channel_id],
-                                }
-                          )
+                        try :
+                            await control.request \
+                              (
+                                method = RESTMETHOD.POST,
+                                path = "/channels/%s/answer" % channel_id
+                              )
+                        except seaskirt.ARIError as err :
+                            logline("Error answering channel: %s" % str(err))
+                        else :
+                            await control.request \
+                              (
+                                method = RESTMETHOD.POST,
+                                path = "/bridges/%s/addChannel" % bridge_id,
+                                params =
+                                    {
+                                        "channel" :
+                                            (in_channel_id, out_channel_id)
+                                                [channel_id == out_channel_id],
+                                        "role" : ("inbound", "outbound")[channel_id == out_channel_id],
+                                    }
+                              )
+                        #end try
                     else :
                         logline("Unrecognized stasis-start channel %s" % channel_id)
                     #end if
